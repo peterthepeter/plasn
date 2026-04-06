@@ -320,14 +320,12 @@ export function App() {
       : t(settings.locale, "paperlessSetupOptionalTitle");
   const paperlessRequiredEnv =
     settings.generatorMode === "separator"
-      ? [
-          "PAPERLESS_CONSUMER_ENABLE_BARCODES=true",
-          `PAPERLESS_CONSUMER_BARCODE_STRING=${separatorBarcodeValue}`,
-        ].join("\n")
+      ? ["PAPERLESS_CONSUMER_ENABLE_BARCODES=true"].join("\n")
       : ["PAPERLESS_CONSUMER_ENABLE_ASN_BARCODE=true"].join("\n");
   const paperlessOptionalEnv =
     settings.generatorMode === "separator"
       ? [
+          `PAPERLESS_CONSUMER_BARCODE_STRING=${separatorBarcodeValue}`,
           "PAPERLESS_CONSUMER_BARCODE_RETAIN_SPLIT_PAGES=true",
           "PAPERLESS_CONSUMER_BARCODE_SCANNER=ZXING",
           "PAPERLESS_CONSUMER_BARCODE_DPI=600",

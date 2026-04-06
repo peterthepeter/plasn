@@ -137,10 +137,10 @@ const dictionaries: Record<Locale, Dictionary> = {
     paperlessSetupOptionalTitle:
       "Optional for a custom ASN prefix, general barcodes, and small codes",
     paperlessSetupBodySeparator:
-      "Set these environment variables in your Docker or Compose setup so Paperless-ngx separates documents using this barcode value.",
+      "Set these environment variables in your Docker or Compose setup so Paperless-ngx separates documents using this barcode value. PATCHT is the default separator string and only needs to be set explicitly if you use a different value.",
     paperlessSetupRequiredTitleSeparator: "Required for separator sheets",
     paperlessSetupOptionalTitleSeparator:
-      "Optional to retain split pages and improve barcode detection",
+      "Optional for a custom separator string, retaining split pages, and improving barcode detection",
     paperlessSetupScannerNote:
       "Scanner selection is optional. Paperless-ngx supports PYZBAR by default and ZXING as an alternative if small or poor-quality barcodes are detected unreliably.",
     paperlessSetupDocsLabel: "Paperless-ngx barcode configuration",
@@ -322,10 +322,10 @@ const dictionaries: Record<Locale, Dictionary> = {
     paperlessSetupOptionalTitle:
       "Optional für ein eigenes ASN-Präfix, allgemeine Barcodes und kleine Codes",
     paperlessSetupBodySeparator:
-      "Setze diese Umgebungsvariablen in deinem Docker- oder Compose-Setup, damit Paperless-ngx Dokumente mit diesem Barcode-Inhalt trennt.",
+      "Setze diese Umgebungsvariablen in deinem Docker- oder Compose-Setup, damit Paperless-ngx Dokumente mit diesem Barcode-Inhalt trennt. PATCHT ist der Standardwert für Trennblätter und muss nur gesetzt werden, wenn du einen anderen Wert verwendest.",
     paperlessSetupRequiredTitleSeparator: "Erforderlich für Trennblätter",
     paperlessSetupOptionalTitleSeparator:
-      "Optional zum Behalten der Trennseiten und für bessere Barcode-Erkennung",
+      "Optional für einen eigenen Trennwert, zum Behalten der Trennseiten und für bessere Barcode-Erkennung",
     paperlessSetupScannerNote:
       "Die Scanner-Auswahl ist optional. Paperless-ngx unterstützt standardmäßig PYZBAR und alternativ ZXING, falls kleine oder schlechter gedruckte Barcodes unzuverlässig erkannt werden.",
     paperlessSetupDocsLabel: "Paperless-ngx Barcode-Konfiguration",
