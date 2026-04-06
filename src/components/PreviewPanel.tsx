@@ -5,7 +5,7 @@ import type { GeneratedDocumentLayout, Locale } from "../core/types";
 import { t } from "../core/i18n";
 
 interface PreviewPanelProps {
-  layout: GeneratedDocumentLayout;
+  layout: GeneratedDocumentLayout | null;
   locale: Locale;
   qrColor: string;
   textColor: string;
@@ -21,6 +21,14 @@ export function PreviewPanel({
   pageIndex,
   onPageChange,
 }: PreviewPanelProps) {
+  if (!layout) {
+    return (
+      <div class="preview-empty">
+        <p>{t(locale, "previewGenerateHint")}</p>
+      </div>
+    );
+  }
+
   const page = layout.pages[pageIndex];
   const asnPage = layout.kind === "asn" ? layout.pages[pageIndex] : null;
   const separatorPage =

@@ -1,4 +1,5 @@
 import { generateLayout } from "../core/layout";
+import { clampAsnDigits, normalizeAsnPrefix } from "../core/limits";
 import { PRESET_LIBRARY } from "../core/presets";
 import { createDefaultCalibrationProfile } from "../core/storage";
 import type { GeneratorConfig } from "../core/types";
@@ -9,7 +10,7 @@ function makeConfig(overrides: Partial<GeneratorConfig> = {}): GeneratorConfig {
     startNumber: 1,
     count: 10,
     prefix: "ASN",
-    digits: 7,
+    digits: 6,
     qrColor: "#000000",
     textColor: "#000000",
     showTextPrefix: true,
@@ -96,8 +97,14 @@ describe("generateLayout", () => {
       createDefaultCalibrationProfile(config.presetId),
     );
 
-    expect(layout.pages[0].items[0].encodedText).toBe("ASN0000012");
+    expect(layout.pages[0].items[0].encodedText).toBe("ASN000012");
     expect(layout.pages[0].items[0].displayText).toBe("12");
     expect(layout.pages[0].items[0].textOffsetMm).toBeGreaterThan(0);
+  });
+
+  it("limits ASN digits and prefix length", () => {
+    expect(clampAsnDigits(9)).toBe(6);
+    expect(clampAsnDigits(0)).toBe(1);
+    expect(normalizeAsnPrefix("PREFIX")).toBe("PREFI");
   });
 });

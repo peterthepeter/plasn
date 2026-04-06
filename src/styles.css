@@ -568,6 +568,7 @@ textarea {
   flex-wrap: wrap;
   gap: 0.75rem;
   margin-top: 1.2rem;
+  align-items: center;
 }
 
 .button-row--compact {
@@ -585,6 +586,66 @@ textarea {
 .button-row--compact .button {
   padding: 0.72rem 0.95rem;
   font-size: 0.92rem;
+}
+
+.output-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+  min-width: 13.2rem;
+  border: 0;
+  padding: 0.92rem 1.2rem;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--on-surface-variant);
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(72, 72, 71, 0.25);
+  text-align: left;
+  transition: 180ms ease;
+}
+
+.output-toggle:hover {
+  box-shadow: inset 0 0 0 1px rgba(72, 72, 71, 0.36);
+}
+
+.output-toggle--active {
+  color: var(--on-surface);
+  box-shadow: inset 0 0 0 1px rgba(89, 243, 197, 0.42);
+}
+
+.output-toggle__label {
+  font-size: 0.92rem;
+}
+
+.output-toggle__switch {
+  position: relative;
+  width: 2.6rem;
+  height: 1.45rem;
+  flex: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  transition: 180ms ease;
+}
+
+.output-toggle__thumb {
+  position: absolute;
+  top: 0.18rem;
+  left: 0.18rem;
+  width: 1.09rem;
+  height: 1.09rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.65);
+  transition: 180ms ease;
+}
+
+.output-toggle__switch--active {
+  background: rgba(89, 243, 197, 0.18);
+}
+
+.output-toggle__switch--active .output-toggle__thumb {
+  transform: translateX(1.15rem);
+  background: var(--primary);
 }
 
 .profile-actions {

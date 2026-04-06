@@ -1,5 +1,6 @@
 import { detectInitialLocale } from "./i18n";
 import { normalizeHexColor } from "./color";
+import { clampAsnDigits, normalizeAsnPrefix } from "./limits";
 import { createDefaultCustomPreset, PRESET_LIBRARY } from "./presets";
 import type {
   AppSettings,
@@ -63,7 +64,7 @@ export function createDefaultSettings(): AppSettings {
     startNumber: 1,
     count: preset.columns * preset.rows,
     prefix: "ASN",
-    digits: 7,
+    digits: 6,
     qrColor: "#000000",
     textColor: "#000000",
     showTextPrefix: true,
@@ -104,6 +105,8 @@ export function loadSettings(): AppSettings {
     return {
       ...createDefaultSettings(),
       ...parsed,
+      prefix: normalizeAsnPrefix(parsed.prefix ?? createDefaultSettings().prefix),
+      digits: clampAsnDigits(parsed.digits ?? createDefaultSettings().digits),
       qrColor: normalizeHexColor(parsed.qrColor, fallbackColor),
       textColor: normalizeHexColor(parsed.textColor, fallbackColor),
       separatorBarcodeColor: normalizeHexColor(

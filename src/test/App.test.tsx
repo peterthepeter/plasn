@@ -73,4 +73,49 @@ describe("App", () => {
       screen.getByText(/PAPERLESS_CONSUMER_BARCODE_STRING=PATCHT/i),
     ).toBeInTheDocument();
   });
+
+  it("shows export actions only after generating", async () => {
+    render(<App />);
+
+    expect(
+      screen.getByRole("button", { name: /^Generate$|^Generieren$/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Download PDF|PDF herunterladen/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("marks generated output stale when text visibility toggles change", () => {
+    render(<App />);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /^Generate$|^Generieren$/i }),
+    );
+    expect(
+      screen.getByRole("button", { name: /Download PDF|PDF herunterladen/i }),
+    ).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /Show prefix in text|Präfix im Text/i }),
+    );
+
+    expect(
+      screen.getByRole("button", { name: /^Generate$|^Generieren$/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("auto-generates when enabled", () => {
+    render(<App />);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /Auto-generate|Auto-Generieren/i }),
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: /Show prefix in text|Präfix im Text/i }),
+    );
+
+    expect(
+      screen.getByRole("button", { name: /Download PDF|PDF herunterladen/i }),
+    ).toBeInTheDocument();
+  });
 });

@@ -28,7 +28,7 @@ function makeWarning(
   return { code, meta };
 }
 
-function fallbackBarcodeValue(value: string): string {
+export function fallbackBarcodeValue(value: string): string {
   const trimmed = value.trim();
   return trimmed === "" ? "PATCHT" : trimmed;
 }

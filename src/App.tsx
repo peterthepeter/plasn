@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { PreviewPanel } from "./components/PreviewPanel";
 import { normalizeHexColor } from "./core/color";
+import { clampAsnDigits, MAX_ASN_DIGITS, MAX_ASN_PREFIX_LENGTH, normalizeAsnPrefix } from "./core/limits";
 import { generateLayout } from "./core/layout";
-import { generateSeparatorLayout } from "./core/separatorLayout";
+import { fallbackBarcodeValue, generateSeparatorLayout } from "./core/separatorLayout";
 import { t, warningMessage } from "./core/i18n";
-import { CUSTOM_PRESET_ID, PRESET_LIBRARY } from "./core/presets";
+import { CUSTOM_PRESET_ID, getPresetById, PRESET_LIBRARY } from "./core/presets";
 import { printLayout } from "./core/print";
 import {
   createDefaultCalibrationProfile,
@@ -18,7 +19,6 @@ import {
   serializeCalibrationProfiles,
   toAppSettings,
 } from "./core/storage";
-import { parseUrlState, writeUrlState } from "./core/urlState";
 import type {
   AppSettings,
   CalibrationProfile,
@@ -135,6 +135,45 @@ function getSeparatorPaperLabel(locale: Locale, paperSize: SeparatorPaperSize): 
 function slugifyValue(value: string): string {
   const normalized = value.trim().toLowerCase().replaceAll(/[^a-z0-9]+/g, "-");
   return normalized.replaceAll(/^-+|-+$/g, "") || "separator";
+}
+
+function buildGenerationKey(
+  settings: AppSettings,
+  profile: CalibrationProfile,
+  barcodeColor: string,
+  textColor: string,
+): string {
+  return JSON.stringify({
+    layoutKind: settings.generatorMode,
+    locale: settings.locale,
+    barcodeColor,
+    textColor,
+    settings: {
+      generatorMode: settings.generatorMode,
+      startNumber: settings.startNumber,
+      endNumber: settings.endNumber,
+      count: settings.count,
+      prefix: settings.prefix,
+      digits: settings.digits,
+      showTextPrefix: settings.showTextPrefix,
+      showTextLeadingZeros: settings.showTextLeadingZeros,
+      numberingDirection: settings.numberingDirection,
+      startPosition: settings.startPosition,
+      presetId: settings.presetId,
+      showBorders: settings.showBorders,
+      separatorPaperSize: settings.separatorPaperSize,
+      separatorBarcodeValue: settings.separatorBarcodeValue,
+      separatorHeadline: settings.separatorHeadline,
+      separatorFreeText: settings.separatorFreeText,
+    },
+    calibration: {
+      id: profile.id,
+      offsetXMm: profile.offsetXMm,
+      offsetYMm: profile.offsetYMm,
+      pitchAdjustXMm: profile.pitchAdjustXMm,
+      pitchAdjustYMm: profile.pitchAdjustYMm,
+    },
+  });
 }
 
 interface ColorFieldProps {
@@ -256,8 +295,7 @@ function ColorField({
 
 export function App() {
   const [settings, setSettings] = useState<AppSettings>(() => {
-    const stored = loadSettings();
-    return parseUrlState(stored);
+    return loadSettings();
   });
   const [qrColorDraft, setQrColorDraft] = useState(settings.qrColor);
   const [textColorDraft, setTextColorDraft] = useState(settings.textColor);
@@ -272,6 +310,11 @@ export function App() {
   >(() => loadCalibrationProfiles());
   const [pageIndex, setPageIndex] = useState(0);
   const [isExporting, setIsExporting] = useState(false);
+  const [isAutoGenerate, setIsAutoGenerate] = useState(false);
+  const [generatedSettings, setGeneratedSettings] = useState<AppSettings | null>(null);
+  const [generatedProfile, setGeneratedProfile] = useState<CalibrationProfile | null>(
+    null,
+  );
   const [isGeneratorHelpOpen, setIsGeneratorHelpOpen] = useState(false);
   const [isCalibrationHelpOpen, setIsCalibrationHelpOpen] = useState(false);
   const [isProfileActionsOpen, setIsProfileActionsOpen] = useState(false);
@@ -290,14 +333,22 @@ export function App() {
     profiles.find((profile) => profile.id === settings.calibrationProfileId) ??
     profiles[0] ??
     createDefaultCalibrationProfile(settings.presetId);
-  const asnLayout = generateLayout(settings as GeneratorConfig, selectedProfile);
-  const separatorLayout = generateSeparatorLayout(settings as SeparatorConfig);
-  const layout: GeneratedDocumentLayout =
-    settings.generatorMode === "separator" ? separatorLayout : asnLayout;
-  const preset = asnLayout.preset;
+  const layout: GeneratedDocumentLayout | null =
+    generatedSettings && generatedProfile
+      ? generatedSettings.generatorMode === "separator"
+        ? generateSeparatorLayout(generatedSettings as SeparatorConfig)
+        : generateLayout(
+            generatedSettings as GeneratorConfig,
+            generatedProfile,
+          )
+      : null;
+  const preset = getPresetById(settings.presetId, settings.customPreset);
   const suggestedEndNumber = getSuggestedEndNumber(settings);
   const paperlessPrefix = getPaperlessPrefix(settings.prefix);
-  const separatorBarcodeValue = separatorLayout.barcodeValue;
+  const separatorBarcodeValue =
+    layout?.kind === "separator"
+      ? layout.barcodeValue
+      : fallbackBarcodeValue(settings.separatorBarcodeValue);
   const activeBarcodeColor =
     settings.generatorMode === "separator"
       ? settings.separatorBarcodeColor
@@ -337,7 +388,29 @@ export function App() {
           "PAPERLESS_CONSUMER_BARCODE_DPI=600",
           "PAPERLESS_CONSUMER_BARCODE_UPSCALE=1.5",
         ].join("\n");
-  const canExport = layout.pages.length > 0;
+  const canExport = layout !== null && layout.pages.length > 0;
+  const canGenerate = !isExporting;
+  const liveSettingsKey = buildGenerationKey(
+    settings,
+    selectedProfile,
+    activeBarcodeColor,
+    activeTextColor,
+  );
+  const generatedStateKey =
+    generatedSettings && generatedProfile
+      ? buildGenerationKey(
+          generatedSettings,
+          generatedProfile,
+          generatedSettings.generatorMode === "separator"
+            ? generatedSettings.separatorBarcodeColor
+            : generatedSettings.qrColor,
+          generatedSettings.generatorMode === "separator"
+            ? generatedSettings.separatorTextColor
+            : generatedSettings.textColor,
+        )
+      : null;
+  const hasGeneratedExport =
+    layout !== null && generatedStateKey === liveSettingsKey;
   const topbarStatus =
     settings.generatorMode === "separator"
       ? t(settings.locale, "separatorStatus", {
@@ -381,7 +454,6 @@ export function App() {
 
   useEffect(() => {
     saveSettings(toAppSettings(settings, settings.customPreset));
-    writeUrlState(settings);
   }, [settings]);
 
   useEffect(() => {
@@ -449,6 +521,17 @@ export function App() {
       ...patch,
     }));
   }
+
+  useEffect(() => {
+    if (!isAutoGenerate) {
+      return;
+    }
+
+    const settingsSnapshot: AppSettings = structuredClone(settings);
+    const profileSnapshot: CalibrationProfile = structuredClone(selectedProfile);
+    setGeneratedSettings(settingsSnapshot);
+    setGeneratedProfile(profileSnapshot);
+  }, [isAutoGenerate, liveSettingsKey]);
 
   function commitQrColor(rawValue: string) {
     const normalized = normalizeHexColor(rawValue, settings.qrColor);
@@ -522,20 +605,28 @@ export function App() {
   }
 
   async function handlePdfDownload() {
+    if (!layout) {
+      return;
+    }
+
     setIsExporting(true);
     try {
       const { renderPdf } = await import("./core/pdf");
       const blob = await renderPdf(
         layout,
-        settings.locale,
-        activeBarcodeColor,
-        activeTextColor,
+        generatedSettings?.locale ?? settings.locale,
+        generatedSettings?.generatorMode === "separator"
+          ? generatedSettings.separatorBarcodeColor
+          : generatedSettings?.qrColor ?? activeBarcodeColor,
+        generatedSettings?.generatorMode === "separator"
+          ? generatedSettings.separatorTextColor
+          : generatedSettings?.textColor ?? activeTextColor,
       );
       downloadBlob(
         blob,
         layout.kind === "separator"
           ? `plasn-separator-${slugifyValue(layout.barcodeValue)}.pdf`
-          : `plasn-${layout.preset.id}-${settings.startNumber}.pdf`,
+          : `plasn-${layout.preset.id}-${generatedSettings?.startNumber ?? settings.startNumber}.pdf`,
       );
     } finally {
       setIsExporting(false);
@@ -554,6 +645,10 @@ export function App() {
   }
 
   async function handlePrint() {
+    if (!layout) {
+      return;
+    }
+
     setIsExporting(true);
     try {
       await printLayout(
@@ -565,6 +660,13 @@ export function App() {
     } finally {
       setIsExporting(false);
     }
+  }
+
+  async function handleGenerateExport() {
+    const settingsSnapshot: AppSettings = structuredClone(settings);
+    const profileSnapshot: CalibrationProfile = structuredClone(selectedProfile);
+    setGeneratedSettings(settingsSnapshot);
+    setGeneratedProfile(profileSnapshot);
   }
 
   function handleNewProfile() {
@@ -1094,9 +1196,12 @@ export function App() {
                 <input
                   onInput={(event) =>
                     updateSettings({
-                      prefix: (event.currentTarget as HTMLInputElement).value,
+                      prefix: normalizeAsnPrefix(
+                        (event.currentTarget as HTMLInputElement).value,
+                      ),
                     })
                   }
+                  maxLength={MAX_ASN_PREFIX_LENGTH}
                   type="text"
                   value={settings.prefix}
                 />
@@ -1107,12 +1212,12 @@ export function App() {
                   min={1}
                   onInput={(event) =>
                     updateSettings({
-                      digits: Math.max(
-                        1,
+                      digits: clampAsnDigits(
                         Number((event.currentTarget as HTMLInputElement).value) || 1,
                       ),
                     })
                   }
+                  max={MAX_ASN_DIGITS}
                   type="number"
                   value={settings.digits}
                 />
@@ -1554,7 +1659,7 @@ export function App() {
               <h3>{t(settings.locale, "sectionPreview")}</h3>
             </div>
 
-            {layout.warnings.length ? (
+            {layout?.warnings.length ? (
               <div class="warning-stack" role="status">
                 <h4>{t(settings.locale, "warningTitle")}</h4>
                 {layout.warnings.map((warning, index) => (
@@ -1569,32 +1674,63 @@ export function App() {
               layout={layout}
               locale={settings.locale}
               onPageChange={setPageIndex}
-              pageIndex={Math.min(pageIndex, Math.max(layout.pages.length - 1, 0))}
+              pageIndex={Math.min(pageIndex, Math.max((layout?.pages.length ?? 1) - 1, 0))}
               qrColor={activeBarcodeColor}
               textColor={activeTextColor}
             />
 
-            <div class="output-panel">
+              <div class="output-panel">
               <div class="button-row">
-                <button
-                  class="button button--primary"
-                  disabled={isExporting || !canExport}
-                  onClick={handlePdfDownload}
-                  type="button"
-                >
-                  {t(settings.locale, "buttonPdf")}
-                </button>
-                <button
-                  class="button button--ghost"
-                  disabled={isExporting || !canExport}
-                  onClick={handlePrint}
-                  type="button"
-                >
-                  {t(settings.locale, "buttonPrint")}
-                </button>
+                {hasGeneratedExport ? (
+                  <>
+                    <button
+                      class="button button--primary"
+                      disabled={isExporting || !canExport}
+                      onClick={handlePdfDownload}
+                      type="button"
+                    >
+                      {t(settings.locale, "buttonPdf")}
+                    </button>
+                    <button
+                      class="button button--ghost"
+                      disabled={isExporting || !canExport}
+                      onClick={handlePrint}
+                      type="button"
+                    >
+                      {t(settings.locale, "buttonPrint")}
+                    </button>
+                  </>
+                ) : (
+                    <button
+                      class="button button--primary"
+                      disabled={!canGenerate}
+                      onClick={handleGenerateExport}
+                      type="button"
+                    >
+                    {t(settings.locale, "buttonGenerate")}
+                  </button>
+                )}
                 <button class="button button--text" onClick={handleReset} type="button">
                     {t(settings.locale, "buttonReset")}
                   </button>
+                <button
+                  aria-pressed={isAutoGenerate}
+                  class={`output-toggle${isAutoGenerate ? " output-toggle--active" : ""}`}
+                  onClick={() => setIsAutoGenerate((current) => !current)}
+                  type="button"
+                >
+                  <span class="output-toggle__label">
+                    {t(settings.locale, "buttonAutoGenerate")}
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    class={`output-toggle__switch${
+                      isAutoGenerate ? " output-toggle__switch--active" : ""
+                    }`}
+                  >
+                    <span class="output-toggle__thumb" />
+                  </span>
+                </button>
               </div>
               <div class="source-panel">
                 <strong>{t(settings.locale, "outputPrintScaleTitle")}</strong>

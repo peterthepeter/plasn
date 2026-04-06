@@ -110,6 +110,8 @@ const dictionaries: Record<Locale, Dictionary> = {
       "These measurements drive preview, PDF, and print from the same geometry model.",
     hintSeparatorFreeText:
       "Optional text for humans only. The separator logic uses only the barcode value.",
+    buttonGenerate: "Generate",
+    buttonAutoGenerate: "Auto-generate",
     buttonPdf: "Download PDF",
     buttonPrint: "Print",
     buttonReset: "Reset settings",
@@ -155,6 +157,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     overlayHelp:
       "Print this overlay on plain paper, place it behind a real label sheet, and hold both against the light. If everything is shifted equally, adjust Offset. If the error grows across the sheet, adjust Pitch.",
     previewNoPages: "No labels to preview yet.",
+    previewGenerateHint: "Press Generate to build the preview, PDF, and print layout.",
     borderLabel: "Debug borders",
     toggleEnabled: "on",
     toggleDisabled: "off",
@@ -295,6 +298,8 @@ const dictionaries: Record<Locale, Dictionary> = {
       "Diese Maße steuern Vorschau, PDF und Druck über dasselbe Geometriemodell.",
     hintSeparatorFreeText:
       "Optionaler Text nur für Menschen. Für die Trennung zählt ausschließlich der Barcode-Inhalt.",
+    buttonGenerate: "Generieren",
+    buttonAutoGenerate: "Auto-Generieren",
     buttonPdf: "PDF herunterladen",
     buttonPrint: "Drucken",
     buttonReset: "Einstellungen zurücksetzen",
@@ -340,6 +345,8 @@ const dictionaries: Record<Locale, Dictionary> = {
     overlayHelp:
       "Drucke diesen Overlay-Testbogen auf Normalpapier, lege ihn hinter einen echten Etikettenbogen und halte beides gegen das Licht. Wenn alles gleich verschoben ist, passe den Offset an. Wenn der Fehler über den Bogen wächst, passe Pitch an.",
     previewNoPages: "Noch keine Etiketten zur Vorschau vorhanden.",
+    previewGenerateHint:
+      "Drücke auf Generieren, um Vorschau, PDF und Drucklayout zu erstellen.",
     borderLabel: "Debug-Rahmen",
     toggleEnabled: "an",
     toggleDisabled: "aus",

@@ -11,7 +11,7 @@ describe("renderPdf", () => {
       startNumber: 1,
       count: 2,
       prefix: "ASN",
-      digits: 7,
+      digits: 6,
       qrColor: "#0000FF",
       textColor: "#B91C1C",
       showTextPrefix: true,
