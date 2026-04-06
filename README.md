@@ -8,6 +8,20 @@ Plasn is a lightweight web app for generating:
 
 The app runs fully client-side in the browser. No backend is required.
 
+## Live app
+
+- [https://plasn.getathome.dedyn.io](https://plasn.getathome.dedyn.io)
+
+## What Plasn does
+
+Plasn is built for Paperless-ngx users who want to:
+
+- print ASN QR label sheets
+- create barcode separator sheets for document splitting
+- calibrate label output without wasting real label stock
+
+Everything runs locally in the browser after the app has loaded. The server only delivers static files.
+
 ## Features
 
 - ASN QR label generator with multiple A4 presets and custom label geometry
@@ -16,6 +30,14 @@ The app runs fully client-side in the browser. No backend is required.
 - Separator sheet mode using Code 128 barcodes
 - Overlay test sheet PDF for alignment on plain paper
 - German and English UI
+
+## Quick start
+
+1. Open the live app.
+2. Choose your label preset or switch to separator sheets.
+3. Configure the values you need.
+4. Export a PDF or print directly.
+5. For label sheets, use the overlay test sheet first if your printer needs calibration.
 
 ## Local development
 
@@ -71,6 +93,15 @@ http://localhost:8080
 ```
 
 For Unraid, a simple custom container using the provided `Dockerfile` is enough. If you already use Caddy as reverse proxy, you can publish the container internally and proxy it through your existing setup.
+
+## Release model
+
+The GitHub Actions workflow publishes:
+
+- `latest` for the current main branch
+- immutable `sha-<commit>` image tags for reproducible deployments
+
+If you want safer long-running deployments, prefer the `sha-...` tags over `latest`.
 
 ## GitHub Container Registry (GHCR)
 
@@ -211,6 +242,10 @@ For your setup, self-hosting in Docker on Unraid is the most sensible default:
 - no dependence on a third-party frontend host
 
 Netlify or Cloudflare Pages are still good options if you want a public demo or very simple external sharing.
+
+## Feedback
+
+If you run into a bug or have an idea for an improvement, the easiest long-term path is a GitHub issue once the repository is opened more broadly. Until then, direct feedback on the hosted app and deployment setup is still useful for improving the tool.
 
 ## Optional analytics
 
