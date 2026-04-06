@@ -326,7 +326,6 @@ export function App() {
     settings.generatorMode === "separator"
       ? [
           `PAPERLESS_CONSUMER_BARCODE_STRING=${separatorBarcodeValue}`,
-          "PAPERLESS_CONSUMER_BARCODE_RETAIN_SPLIT_PAGES=true",
           "PAPERLESS_CONSUMER_BARCODE_SCANNER=ZXING",
           "PAPERLESS_CONSUMER_BARCODE_DPI=600",
           "PAPERLESS_CONSUMER_BARCODE_UPSCALE=1.5",

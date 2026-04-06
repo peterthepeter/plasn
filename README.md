@@ -223,11 +223,10 @@ PAPERLESS_CONSUMER_BARCODE_UPSCALE=1.5
 PAPERLESS_CONSUMER_ENABLE_BARCODES=true
 ```
 
-Optional if you use a different separator string and for split-page retention or more robust barcode detection:
+Optional if you use a different separator string or want more robust barcode detection:
 
 ```env
 PAPERLESS_CONSUMER_BARCODE_STRING=YOUR_SEPARATOR
-PAPERLESS_CONSUMER_BARCODE_RETAIN_SPLIT_PAGES=true
 PAPERLESS_CONSUMER_BARCODE_SCANNER=ZXING
 PAPERLESS_CONSUMER_BARCODE_DPI=600
 PAPERLESS_CONSUMER_BARCODE_UPSCALE=1.5
