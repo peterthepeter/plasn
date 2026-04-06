@@ -72,6 +72,102 @@ http://localhost:8080
 
 For Unraid, a simple custom container using the provided `Dockerfile` is enough. If you already use Caddy as reverse proxy, you can publish the container internally and proxy it through your existing setup.
 
+## GitHub Container Registry (GHCR)
+
+The repository includes a GitHub Actions workflow that:
+
+- runs tests
+- builds the app
+- builds a Docker image
+- publishes it to GitHub Container Registry on every push to `main`
+
+Image name:
+
+```text
+ghcr.io/peterthepeter/plasn:latest
+```
+
+Additional immutable image tag:
+
+```text
+ghcr.io/peterthepeter/plasn:sha-<commit>
+```
+
+If the repository or package stays private, Unraid needs a GitHub token with permission to read packages.
+
+## Unraid deployment
+
+Recommended approach:
+
+1. Use the GHCR image as your container source.
+2. Expose the container only internally on your server or Docker network.
+3. Let Caddy handle the public HTTPS entrypoint.
+
+Example container mapping:
+
+```text
+Container port: 80
+Host port: 8088
+```
+
+Do not forward that host port in your router. Only Caddy should be public.
+
+## Caddy recommendation for Plasn
+
+For Plasn, use a more restrictive public snippet than your generic reverse proxy, because the app only needs static delivery.
+
+Example:
+
+```caddy
+(public_static) {
+	import security_headers_public
+	import tls_desec
+	encode gzip zstd
+
+	route {
+		crowdsec
+
+		@badMethods not method GET HEAD OPTIONS
+		respond @badMethods "Method Not Allowed" 405
+
+		@blockShellInjection path_regexp shellinjection /.*(;|\|).*/
+		respond @blockShellInjection "Forbidden" 403
+
+		@blockScannerPaths path /.env /wp-admin /wp-login.php /phpmyadmin /etc/passwd /proc/self/environ
+		respond @blockScannerPaths "Not Found" 404
+
+		@blockScannerExt path_regexp \.git|\.sql|\.bak|\.backup|\.htaccess|\.htpasswd
+		respond @blockScannerExt "Not Found" 404
+
+		request_body {
+			max_size 32KB
+		}
+
+		reverse_proxy 192.168.1.3:8088 {
+			header_up Host {host}
+			header_up X-Real-IP {remote_host}
+			transport http {
+				dial_timeout 5s
+				response_header_timeout 15s
+			}
+		}
+	}
+}
+
+plasn.getathome.dedyn.io {
+	import public_static
+	log {
+		output file /var/log/caddy/access.log {
+			roll_size 10mb
+			roll_keep 2
+		}
+		format json
+	}
+}
+```
+
+This keeps Plasn separated from more complex public services such as media apps or personal dashboards.
+
 ## Paperless-ngx configuration
 
 ### ASN labels
