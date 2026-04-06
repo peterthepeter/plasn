@@ -205,12 +205,12 @@ This keeps Plasn separated from more complex public services such as media apps 
 
 ```env
 PAPERLESS_CONSUMER_ENABLE_ASN_BARCODE=true
-PAPERLESS_CONSUMER_ASN_BARCODE_PREFIX=ASN
 ```
 
-Optional for broader barcode handling and more robust detection:
+Optional if you use a different ASN prefix and for broader barcode handling or more robust detection:
 
 ```env
+PAPERLESS_CONSUMER_ASN_BARCODE_PREFIX=YOUR_PREFIX
 PAPERLESS_CONSUMER_ENABLE_BARCODES=true
 PAPERLESS_CONSUMER_BARCODE_SCANNER=ZXING
 PAPERLESS_CONSUMER_BARCODE_DPI=600

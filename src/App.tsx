@@ -324,10 +324,7 @@ export function App() {
           "PAPERLESS_CONSUMER_ENABLE_BARCODES=true",
           `PAPERLESS_CONSUMER_BARCODE_STRING=${separatorBarcodeValue}`,
         ].join("\n")
-      : [
-          "PAPERLESS_CONSUMER_ENABLE_ASN_BARCODE=true",
-          `PAPERLESS_CONSUMER_ASN_BARCODE_PREFIX=${paperlessPrefix}`,
-        ].join("\n");
+      : ["PAPERLESS_CONSUMER_ENABLE_ASN_BARCODE=true"].join("\n");
   const paperlessOptionalEnv =
     settings.generatorMode === "separator"
       ? [
@@ -337,6 +334,7 @@ export function App() {
           "PAPERLESS_CONSUMER_BARCODE_UPSCALE=1.5",
         ].join("\n")
       : [
+          `PAPERLESS_CONSUMER_ASN_BARCODE_PREFIX=${paperlessPrefix}`,
           "PAPERLESS_CONSUMER_ENABLE_BARCODES=true",
           "PAPERLESS_CONSUMER_BARCODE_SCANNER=ZXING",
           "PAPERLESS_CONSUMER_BARCODE_DPI=600",

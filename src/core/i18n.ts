@@ -132,9 +132,10 @@ const dictionaries: Record<Locale, Dictionary> = {
       "Set the print dialog to 100% or Actual size. Do not use Fit to page or any automatic scaling. Margins should be set to None.",
     paperlessSetupTitle: "Paperless-ngx setup for barcode and ASN detection",
     paperlessSetupBody:
-      "Set these environment variables in your Docker or Compose setup so Paperless-ngx reads ASN labels correctly.",
+      "Set these environment variables in your Docker or Compose setup so Paperless-ngx reads ASN labels correctly. The ASN prefix defaults to ASN and only needs to be set explicitly if you use a different prefix.",
     paperlessSetupRequiredTitle: "Required for ASN",
-    paperlessSetupOptionalTitle: "Optional for general barcodes and small codes",
+    paperlessSetupOptionalTitle:
+      "Optional for a custom ASN prefix, general barcodes, and small codes",
     paperlessSetupBodySeparator:
       "Set these environment variables in your Docker or Compose setup so Paperless-ngx separates documents using this barcode value.",
     paperlessSetupRequiredTitleSeparator: "Required for separator sheets",
@@ -316,9 +317,10 @@ const dictionaries: Record<Locale, Dictionary> = {
       "Stelle im Druckdialog unbedingt 100 % oder Tatsächliche Größe ein. Keine Seitenanpassung und keine automatische Skalierung verwenden. Die Ränder sollten auf Keine stehen.",
     paperlessSetupTitle: "Paperless-ngx Setup für Barcode- und ASN-Erkennung",
     paperlessSetupBody:
-      "Setze diese Umgebungsvariablen in deinem Docker- oder Compose-Setup, damit Paperless-ngx ASN-Etiketten korrekt erkennt.",
+      "Setze diese Umgebungsvariablen in deinem Docker- oder Compose-Setup, damit Paperless-ngx ASN-Etiketten korrekt erkennt. Das ASN-Präfix ist standardmäßig ASN und muss nur gesetzt werden, wenn du ein anderes Präfix verwendest.",
     paperlessSetupRequiredTitle: "Erforderlich für ASN",
-    paperlessSetupOptionalTitle: "Optional für allgemeine Barcodes und kleine Codes",
+    paperlessSetupOptionalTitle:
+      "Optional für ein eigenes ASN-Präfix, allgemeine Barcodes und kleine Codes",
     paperlessSetupBodySeparator:
       "Setze diese Umgebungsvariablen in deinem Docker- oder Compose-Setup, damit Paperless-ngx Dokumente mit diesem Barcode-Inhalt trennt.",
     paperlessSetupRequiredTitleSeparator: "Erforderlich für Trennblätter",
