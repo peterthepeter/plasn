@@ -1,7 +1,18 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { PreviewPanel } from "./components/PreviewPanel";
 import { normalizeHexColor } from "./core/color";
-import { clampAsnDigits, MAX_ASN_DIGITS, MAX_ASN_PREFIX_LENGTH, normalizeAsnPrefix } from "./core/limits";
+import {
+  clampAsnDigits,
+  MAX_ASN_DIGITS,
+  MAX_ASN_PREFIX_LENGTH,
+  MAX_SEPARATOR_BARCODE_LENGTH,
+  MAX_SEPARATOR_FREE_TEXT_LENGTH,
+  MAX_SEPARATOR_HEADLINE_LENGTH,
+  normalizeAsnPrefix,
+  normalizeSeparatorBarcodeValue,
+  normalizeSeparatorFreeText,
+  normalizeSeparatorHeadline,
+} from "./core/limits";
 import { generateLayout } from "./core/layout";
 import { fallbackBarcodeValue, generateSeparatorLayout } from "./core/separatorLayout";
 import { t, warningMessage } from "./core/i18n";
@@ -561,6 +572,7 @@ export function App() {
   }
 
   function updateSeparatorBarcodeValue(nextValue: string) {
+    const normalizedValue = normalizeSeparatorBarcodeValue(nextValue);
     setSettings((current) => {
       const shouldMirrorHeadline =
         current.separatorHeadline.trim() === "" ||
@@ -568,9 +580,9 @@ export function App() {
 
       return {
         ...current,
-        separatorBarcodeValue: nextValue,
+        separatorBarcodeValue: normalizedValue,
         separatorHeadline: shouldMirrorHeadline
-          ? nextValue || current.separatorHeadline
+          ? normalizeSeparatorHeadline(normalizedValue || current.separatorHeadline)
           : current.separatorHeadline,
       };
     });
@@ -1600,6 +1612,7 @@ export function App() {
                         (event.currentTarget as HTMLInputElement).value,
                       )
                     }
+                    maxLength={MAX_SEPARATOR_BARCODE_LENGTH}
                     type="text"
                     value={settings.separatorBarcodeValue}
                   />
@@ -1609,11 +1622,12 @@ export function App() {
                   <input
                     onInput={(event) =>
                       updateSettings({
-                        separatorHeadline: (
-                          event.currentTarget as HTMLInputElement
-                        ).value,
+                        separatorHeadline: normalizeSeparatorHeadline(
+                          (event.currentTarget as HTMLInputElement).value,
+                        ),
                       })
                     }
+                    maxLength={MAX_SEPARATOR_HEADLINE_LENGTH}
                     type="text"
                     value={settings.separatorHeadline}
                   />
@@ -1623,11 +1637,12 @@ export function App() {
                   <textarea
                     onInput={(event) =>
                       updateSettings({
-                        separatorFreeText: (
-                          event.currentTarget as HTMLTextAreaElement
-                        ).value,
+                        separatorFreeText: normalizeSeparatorFreeText(
+                          (event.currentTarget as HTMLTextAreaElement).value,
+                        ),
                       })
                     }
+                    maxLength={MAX_SEPARATOR_FREE_TEXT_LENGTH}
                     rows={4}
                     value={settings.separatorFreeText}
                   />

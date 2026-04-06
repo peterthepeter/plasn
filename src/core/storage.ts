@@ -1,6 +1,12 @@
 import { detectInitialLocale } from "./i18n";
 import { normalizeHexColor } from "./color";
-import { clampAsnDigits, normalizeAsnPrefix } from "./limits";
+import {
+  clampAsnDigits,
+  normalizeAsnPrefix,
+  normalizeSeparatorBarcodeValue,
+  normalizeSeparatorFreeText,
+  normalizeSeparatorHeadline,
+} from "./limits";
 import { createDefaultCustomPreset, PRESET_LIBRARY } from "./presets";
 import type {
   AppSettings,
@@ -107,6 +113,16 @@ export function loadSettings(): AppSettings {
       ...parsed,
       prefix: normalizeAsnPrefix(parsed.prefix ?? createDefaultSettings().prefix),
       digits: clampAsnDigits(parsed.digits ?? createDefaultSettings().digits),
+      separatorBarcodeValue: normalizeSeparatorBarcodeValue(
+        parsed.separatorBarcodeValue ??
+          createDefaultSettings().separatorBarcodeValue,
+      ),
+      separatorHeadline: normalizeSeparatorHeadline(
+        parsed.separatorHeadline ?? createDefaultSettings().separatorHeadline,
+      ),
+      separatorFreeText: normalizeSeparatorFreeText(
+        parsed.separatorFreeText ?? createDefaultSettings().separatorFreeText,
+      ),
       qrColor: normalizeHexColor(parsed.qrColor, fallbackColor),
       textColor: normalizeHexColor(parsed.textColor, fallbackColor),
       separatorBarcodeColor: normalizeHexColor(

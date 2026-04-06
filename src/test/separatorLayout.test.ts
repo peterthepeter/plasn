@@ -1,4 +1,9 @@
 import { generateSeparatorLayout } from "../core/separatorLayout";
+import {
+  normalizeSeparatorBarcodeValue,
+  normalizeSeparatorFreeText,
+  normalizeSeparatorHeadline,
+} from "../core/limits";
 import type { SeparatorConfig } from "../core/types";
 
 function makeSeparatorConfig(
@@ -53,5 +58,13 @@ describe("generateSeparatorLayout", () => {
       layout.warnings.some((warning) => warning.code === "separatorInvalidBarcodeValue"),
     ).toBe(true);
     expect(layout.pages[0].barcode.runs.length).toBeGreaterThan(0);
+  });
+
+  it("limits separator text lengths", () => {
+    expect(normalizeSeparatorBarcodeValue("12345678901234567890123")).toBe(
+      "12345678901234567890",
+    );
+    expect(normalizeSeparatorHeadline("A".repeat(50))).toHaveLength(40);
+    expect(normalizeSeparatorFreeText("B".repeat(250))).toHaveLength(200);
   });
 });
