@@ -44,6 +44,26 @@ Everything runs locally in the browser after the app has loaded. The server only
 4. Export a PDF or print directly.
 5. For label sheets, use the overlay test sheet first if your printer needs calibration.
 
+## Print example
+
+This example shows Avery Zweckform L4731 labels printed with the default preset values.
+The text options `Show prefix in text` and `Show leading zeros in text` were disabled.
+
+<a href="public/print-examples/avery-zweckform-l4731-sheet.jpeg">
+  <img
+    src="public/print-examples/avery-zweckform-l4731-sheet.jpeg"
+    alt="Printed Avery Zweckform L4731 label sheet generated with Plasn"
+    width="260"
+  />
+</a>
+<a href="public/print-examples/avery-zweckform-l4731-closeup.jpeg">
+  <img
+    src="public/print-examples/avery-zweckform-l4731-closeup.jpeg"
+    alt="Close-up of printed Avery Zweckform L4731 labels generated with Plasn"
+    width="260"
+  />
+</a>
+
 ## Paperless-ngx configuration
 
 ### ASN labels
