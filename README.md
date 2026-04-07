@@ -109,3 +109,11 @@ Useful bug reports usually include:
 - what happened instead
 - browser and device details
 - screenshots or sample output if helpful
+
+## License
+
+Plasn is licensed under the GNU Affero General Public License v3.0 only (`AGPL-3.0-only`).
+
+The project acknowledges and builds on the original
+[ASN QR code label generator by Tobias L. Maier](https://github.com/tmaier/asn-qr-code-label-generator),
+which is published under the `AGPL-3.0` license.
