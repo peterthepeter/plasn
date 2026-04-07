@@ -40,28 +40,42 @@ const dictionaries: Record<Locale, Dictionary> = {
     buttonWorkflowHelp: "Workflow help",
     workflowHelpTitle: "Workflow guide",
     workflowHelpIntro:
-      "Use this as the normal Plasn workflow from sheet selection to final calibration.",
+      "Use this guide when you want a quick answer to what to set first, what to print next, and how to correct a bad fit.",
     workflowHelpSheetTitle: "1. Choose the label sheet",
     workflowHelpSheetBody:
-      "Start with the matching label preset. Only use the custom preset if your sheet is not listed yet. The selected preset defines the sheet geometry for preview, PDF, and print.",
+      "Start with a matching preset whenever possible. Only use the custom preset when your exact sheet is missing.",
+    workflowHelpSheetNote:
+      "Tip: the chosen preset controls preview, PDF, and print geometry together.",
     workflowHelpConfigTitle: "2. Set up the labels",
     workflowHelpConfigBody:
-      "Choose start number, optional end number or count, prefix, digits, numbering direction, and start position. These options define which codes are generated and how the visible text appears on the labels.",
+      "Set start number first, then either end number or count. Use prefix and digits to define the ASN format.",
+    workflowHelpConfigNote:
+      "Use start position and numbering direction mainly when continuing on a partly used sheet.",
     workflowHelpGenerateTitle: "3. Generate and review",
     workflowHelpGenerateBody:
-      "Generate the sheet and check the preview before printing. If text looks tight, reduce digits, shorten the prefix, or choose a larger label format.",
+      "Generate the sheet and check the preview before printing.",
+    workflowHelpGenerateNote:
+      "If the text looks cramped, try fewer digits, a shorter prefix, or a larger label format.",
     workflowHelpPrintTitle: "4. Print without scaling",
     workflowHelpPrintBody:
-      "Download the PDF or print directly, but always use 100% or Actual size. Disable Fit to page and other automatic scaling so the sheet geometry stays exact.",
+      "Print at 100% or Actual size only.",
+    workflowHelpPrintNote:
+      "Use the normal A4 print profile, not borderless A4. Also avoid Fit to page, scaling, or automatic margins, or the labels will miss the sheet.",
     workflowHelpFitTitle: "5. Check alignment on paper",
     workflowHelpFitBody:
-      "If you are unsure, print the overlay test sheet on plain paper and compare it against a real label sheet against the light. That shows whether the complete print is shifted or whether the spacing drifts across the page.",
+      "If you are unsure where the error comes from, print the overlay test sheet on plain paper and compare it with a real label sheet against the light.",
+    workflowHelpFitNote:
+      "That quickly shows whether everything is shifted equally or whether the spacing drifts across the page.",
     workflowHelpCalibrationTitle: "6. Fix misalignment with calibration",
     workflowHelpCalibrationBody:
-      "If every label is offset by about the same amount, adjust Offset X or Y. If the first labels look good but the error grows across rows or columns, adjust Pitch X or Y. Use small steps until the print lands cleanly.",
+      "Change Offset X or Y when every label is off by about the same amount. Change Pitch X or Y when the first labels fit but the error gets worse across the sheet.",
+    workflowHelpCalibrationNote:
+      "Rule of thumb: equal shift = Offset. Growing drift = Pitch. Work in very small steps.",
     workflowHelpProfilesTitle: "7. Save the working setup",
     workflowHelpProfilesBody:
-      "Calibration profiles are stored per label preset, so you can keep different setups for different paper stocks or printers. Export profiles if you want a backup or want to move them to another browser.",
+      "Keep a profile once a sheet works cleanly so you do not have to recalibrate next time.",
+    workflowHelpProfilesNote:
+      "Profiles are stored per preset and can be exported as a backup or for another browser.",
     calibrationHelpIntro:
       "Use calibration only when the print does not land exactly on the sheet.",
     calibrationHelpOffsetTitle: "Offset X/Y",
@@ -156,7 +170,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     outputPresetStatusProvisional: "Provisional preset",
     outputPrintScaleTitle: "Print scaling",
     outputPrintScaleBody:
-      "Set the print dialog to 100% or Actual size. Do not use Fit to page or any automatic scaling. Margins should be set to None.",
+      "Set the print dialog to 100% or Actual size and use the normal A4 print profile, not borderless A4. Do not use Fit to page or any automatic scaling.",
     paperlessSetupTitle: "Paperless-ngx setup for barcode and ASN detection",
     paperlessSetupBody:
       "Set these environment variables in your Docker or Compose setup so Paperless-ngx reads ASN labels correctly. The ASN prefix defaults to ASN and only needs to be set explicitly if you use a different prefix.",
@@ -253,28 +267,42 @@ const dictionaries: Record<Locale, Dictionary> = {
     buttonWorkflowHelp: "Ablaufhilfe",
     workflowHelpTitle: "Ablaufplan",
     workflowHelpIntro:
-      "Nutze das als normalen Plasn-Ablauf von der Auswahl des Etikettenbogens bis zur finalen Kalibrierung.",
+      "Nutze diese Hilfe, wenn du schnell wissen willst, womit du beginnst, was du als Nächstes druckst und wie du einen schief sitzenden Druck korrigierst.",
     workflowHelpSheetTitle: "1. Etikettenbogen auswählen",
     workflowHelpSheetBody:
-      "Starte mit dem passenden Etikettenformat. Das eigene Format brauchst du nur, wenn dein Bogen noch nicht in der Liste vorhanden ist. Das gewählte Preset bestimmt die Geometrie für Vorschau, PDF und Druck.",
+      "Starte möglichst immer mit einem passenden Preset. Das eigene Format brauchst du nur, wenn dein exakter Bogen noch nicht vorhanden ist.",
+    workflowHelpSheetNote:
+      "Tipp: Das gewählte Preset steuert Vorschau, PDF und Druckgeometrie gemeinsam.",
     workflowHelpConfigTitle: "2. Etiketten konfigurieren",
     workflowHelpConfigBody:
-      "Lege Startnummer, optional Endnummer oder Anzahl, Präfix, Stellen, Nummerierungsrichtung und Startposition fest. Diese Angaben bestimmen, welche Codes erzeugt werden und wie der sichtbare Text auf den Etiketten erscheint.",
+      "Lege zuerst die Startnummer fest und dann entweder Endnummer oder Anzahl. Mit Präfix und Stellen definierst du das ASN-Format.",
+    workflowHelpConfigNote:
+      "Startposition und Nummerierungsrichtung brauchst du vor allem dann, wenn du auf einem angebrochenen Bogen weitermachen willst.",
     workflowHelpGenerateTitle: "3. Generieren und prüfen",
     workflowHelpGenerateBody:
-      "Erzeuge den Bogen und prüfe zuerst die Vorschau. Wenn der Text knapp wirkt, reduziere die Stellen, kürze das Präfix oder wähle ein größeres Etikettenformat.",
+      "Erzeuge den Bogen und prüfe zuerst die Vorschau.",
+    workflowHelpGenerateNote:
+      "Wenn der Text gequetscht wirkt, helfen meist weniger Stellen, ein kürzeres Präfix oder ein größeres Etikettenformat am schnellsten.",
     workflowHelpPrintTitle: "4. Ohne Skalierung drucken",
     workflowHelpPrintBody:
-      "Lade das PDF herunter oder drucke direkt, aber immer mit 100 % oder Tatsächliche Größe. Keine Seitenanpassung und keine automatische Skalierung verwenden, damit die Geometrie exakt bleibt.",
+      "Drucke immer mit 100 % oder Tatsächliche Größe.",
+    workflowHelpPrintNote:
+      "Nutze das normale A4-Druckprofil, nicht Randlos A4. Sobald der Druckdialog Seitenanpassung, Skalierung oder automatische Ränder verwendet, sitzt der Ausdruck nicht mehr exakt auf dem Etikettenbogen.",
     workflowHelpFitTitle: "5. Ausrichtung auf Papier prüfen",
     workflowHelpFitBody:
-      "Wenn du unsicher bist, drucke den Overlay-Testbogen auf Normalpapier und vergleiche ihn gegen das Licht mit einem echten Etikettenbogen. So siehst du schnell, ob das ganze Druckbild verschoben ist oder ob die Abstände über die Seite driften.",
+      "Wenn du nicht sicher bist, woher der Fehler kommt, drucke den Overlay-Testbogen auf Normalpapier und halte ihn mit einem echten Etikettenbogen gegen das Licht.",
+    workflowHelpFitNote:
+      "So erkennst du schnell, ob alles gleich verschoben ist oder ob die Abstände über die Seite driften.",
     workflowHelpCalibrationTitle: "6. Abweichungen über Kalibrierung korrigieren",
     workflowHelpCalibrationBody:
-      "Wenn alle Etiketten ungefähr gleich falsch sitzen, passe Offset X oder Y an. Wenn die ersten Etiketten gut aussehen, der Fehler aber über Zeilen oder Spalten wächst, passe Pitch X oder Y an. Arbeite in kleinen Schritten, bis der Druck sauber sitzt.",
+      "Ändere Offset X oder Y, wenn alle Etiketten ungefähr gleich falsch sitzen. Ändere Pitch X oder Y, wenn die ersten Etiketten passen, der Fehler über den Bogen aber größer wird.",
+    workflowHelpCalibrationNote:
+      "Faustregel: gleicher Versatz = Offset. Wachsender Fehler = Pitch. Arbeite in sehr kleinen Schritten.",
     workflowHelpProfilesTitle: "7. Funktionierende Einstellung sichern",
     workflowHelpProfilesBody:
-      "Kalibrierprofile werden pro Etikettenformat gespeichert. So kannst du unterschiedliche Einstellungen für verschiedene Papierarten oder Drucker behalten. Exportiere die Profile, wenn du ein Backup möchtest oder sie in einen anderen Browser übernehmen willst.",
+      "Wenn ein Bogen sauber sitzt, behalte das Profil für später, damit du nicht erneut kalibrieren musst.",
+    workflowHelpProfilesNote:
+      "Profile werden pro Preset gespeichert und lassen sich als Backup oder für einen anderen Browser exportieren.",
     calibrationHelpIntro:
       "Nutze die Kalibrierung nur dann, wenn der Druck nicht exakt auf dem Bogen landet.",
     calibrationHelpOffsetTitle: "Offset X/Y",
@@ -369,7 +397,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     outputPresetStatusProvisional: "Vorläufiges Preset",
     outputPrintScaleTitle: "Druckskalierung",
     outputPrintScaleBody:
-      "Stelle im Druckdialog unbedingt 100 % oder Tatsächliche Größe ein. Keine Seitenanpassung und keine automatische Skalierung verwenden. Die Ränder sollten auf Keine stehen.",
+      "Stelle im Druckdialog unbedingt 100 % oder Tatsächliche Größe ein und nutze das normale A4-Druckprofil, nicht Randlos A4. Keine Seitenanpassung und keine automatische Skalierung verwenden.",
     paperlessSetupTitle: "Paperless-ngx Setup für Barcode- und ASN-Erkennung",
     paperlessSetupBody:
       "Setze diese Umgebungsvariablen in deinem Docker- oder Compose-Setup, damit Paperless-ngx ASN-Etiketten korrekt erkennt. Das ASN-Präfix ist standardmäßig ASN und muss nur gesetzt werden, wenn du ein anderes Präfix verwendest.",

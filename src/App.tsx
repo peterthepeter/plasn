@@ -1871,30 +1871,37 @@ export function App() {
               <div class="modal-help-block">
                 <strong>{t(settings.locale, "workflowHelpSheetTitle")}</strong>
                 <p>{t(settings.locale, "workflowHelpSheetBody")}</p>
+                <span class="modal-help-note">{t(settings.locale, "workflowHelpSheetNote")}</span>
               </div>
               <div class="modal-help-block">
                 <strong>{t(settings.locale, "workflowHelpConfigTitle")}</strong>
                 <p>{t(settings.locale, "workflowHelpConfigBody")}</p>
+                <span class="modal-help-note">{t(settings.locale, "workflowHelpConfigNote")}</span>
               </div>
               <div class="modal-help-block">
                 <strong>{t(settings.locale, "workflowHelpGenerateTitle")}</strong>
                 <p>{t(settings.locale, "workflowHelpGenerateBody")}</p>
+                <span class="modal-help-note">{t(settings.locale, "workflowHelpGenerateNote")}</span>
               </div>
               <div class="modal-help-block">
                 <strong>{t(settings.locale, "workflowHelpPrintTitle")}</strong>
                 <p>{t(settings.locale, "workflowHelpPrintBody")}</p>
+                <span class="modal-help-note">{t(settings.locale, "workflowHelpPrintNote")}</span>
               </div>
               <div class="modal-help-block">
                 <strong>{t(settings.locale, "workflowHelpFitTitle")}</strong>
                 <p>{t(settings.locale, "workflowHelpFitBody")}</p>
+                <span class="modal-help-note">{t(settings.locale, "workflowHelpFitNote")}</span>
               </div>
               <div class="modal-help-block">
                 <strong>{t(settings.locale, "workflowHelpCalibrationTitle")}</strong>
                 <p>{t(settings.locale, "workflowHelpCalibrationBody")}</p>
+                <span class="modal-help-note">{t(settings.locale, "workflowHelpCalibrationNote")}</span>
               </div>
               <div class="modal-help-block">
                 <strong>{t(settings.locale, "workflowHelpProfilesTitle")}</strong>
                 <p>{t(settings.locale, "workflowHelpProfilesBody")}</p>
+                <span class="modal-help-note">{t(settings.locale, "workflowHelpProfilesNote")}</span>
               </div>
             </div>
           </div>
