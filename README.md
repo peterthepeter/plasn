@@ -1,4 +1,13 @@
-# Plasn <img src="public/plasn-mark-256.png" alt="Plasn logo" height="28" />
+<table>
+  <tr>
+    <td width="96">
+      <img src="public/plasn-mark-256.png" alt="Plasn logo" width="88" />
+    </td>
+    <td>
+      <h1>Plasn</h1>
+    </td>
+  </tr>
+</table>
 
 Plasn is a lightweight web app for generating:
 
