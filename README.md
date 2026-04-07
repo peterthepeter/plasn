@@ -48,6 +48,7 @@ Everything runs locally in the browser after the app has loaded. The server only
 
 This example shows Avery Zweckform L4731 labels printed with the default preset values.
 The text options `Show prefix in text` and `Show leading zeros in text` were disabled.
+The QR code still keeps the full ASN value with prefix and leading zeros; only the visible label text was reduced.
 
 <a href="public/print-examples/avery-zweckform-l4731-sheet.jpeg">
   <img
