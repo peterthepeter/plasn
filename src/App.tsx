@@ -43,6 +43,7 @@ import type {
 
 const REPOSITORY_URL = "https://github.com/peterthepeter/plasn";
 const ISSUES_URL = "https://github.com/peterthepeter/plasn/issues";
+const ORIGINAL_PROJECT_URL = "https://github.com/tmaier/asn-qr-code-label-generator";
 
 const LABEL_COLOR_PRESETS = [
   { value: "#000000", label: "Black" },
@@ -1993,7 +1994,6 @@ export function App() {
 
       <footer class="app-footer">
         <div class="app-footer__content">
-          <p>{t(settings.locale, "footerCredit")}</p>
           <div class="app-footer__links">
             <a
               class="github-link github-link--primary"
@@ -2020,6 +2020,12 @@ export function App() {
               {t(settings.locale, "footerIssues")}
             </a>
           </div>
+          <p>
+            {t(settings.locale, "footerCredit")}{" "}
+            <a href={ORIGINAL_PROJECT_URL} rel="noreferrer" target="_blank">
+              GitHub
+            </a>
+          </p>
         </div>
       </footer>
     </div>
