@@ -44,50 +44,6 @@ Everything runs locally in the browser after the app has loaded. The server only
 4. Export a PDF or print directly.
 5. For label sheets, use the overlay test sheet first if your printer needs calibration.
 
-## Local development
-
-Requirements:
-
-- Node.js 20+
-- npm
-
-Install dependencies:
-
-```bash
-npm ci
-```
-
-Start development server:
-
-```bash
-npm run dev
-```
-
-Run tests:
-
-```bash
-npm test
-```
-
-Create production build:
-
-```bash
-npm run build
-```
-
-### Optional: Cloudflare Web Analytics
-
-Cloudflare analytics is disabled by default for local builds, forks, and third-party deployments.
-
-To enable it for your own deployment, set the environment variable below before building:
-
-```env
-VITE_CF_WEB_ANALYTICS_TOKEN=YOUR_CLOUDFLARE_SITE_TOKEN
-```
-
-For GitHub Actions based image builds, store the same value as the repository secret
-`CLOUDFLARE_WEB_ANALYTICS_TOKEN`.
-
 ## Paperless-ngx configuration
 
 ### ASN labels

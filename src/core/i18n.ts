@@ -8,6 +8,8 @@ const dictionaries: Record<Locale, Dictionary> = {
     appSubtitle: "Create printable ASN label sheets and separator pages for Paperless-ngx.",
     footerCredit:
       "Based on the original ASN QR code label generator by Tobias L. Maier.",
+    footerGitHub: "View source on GitHub",
+    footerIssues: "Report an issue",
     appTagline: "Precision ASN QR labels for Paperless-ngx.",
     heroTitle: "Editorial-grade ASN label printing without the browser lottery.",
     heroBody:
@@ -235,6 +237,8 @@ const dictionaries: Record<Locale, Dictionary> = {
       "Erzeugt druckbare ASN-Etiketten und Trennblätter für Paperless-ngx.",
     footerCredit:
       "Basiert auf dem ursprünglichen ASN QR Code Label Generator von Tobias L. Maier.",
+    footerGitHub: "Quellcode auf GitHub ansehen",
+    footerIssues: "Issue melden",
     appTagline: "Präzise ASN-QR-Etiketten für Paperless-ngx.",
     heroTitle: "ASN-Etiketten drucken, ohne auf Browser-Zufall zu vertrauen.",
     heroBody:
