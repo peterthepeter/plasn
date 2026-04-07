@@ -4,6 +4,15 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - "README.md"
+      - "CHANGELOG.md"
+      - "DESIGN.md"
+      - ".gitignore"
+      - "public/favicon.ico"
+      - "public/plasn-mark-256.png"
+      - "public/plasn-mark.svg"
+      - "public/robots.txt"
   workflow_dispatch:
 
 permissions:
