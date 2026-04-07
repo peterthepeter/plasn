@@ -75,6 +75,19 @@ Create production build:
 npm run build
 ```
 
+### Optional: Cloudflare Web Analytics
+
+Cloudflare analytics is disabled by default for local builds, forks, and third-party deployments.
+
+To enable it for your own deployment, set the environment variable below before building:
+
+```env
+VITE_CF_WEB_ANALYTICS_TOKEN=YOUR_CLOUDFLARE_SITE_TOKEN
+```
+
+For GitHub Actions based image builds, store the same value as the repository secret
+`CLOUDFLARE_WEB_ANALYTICS_TOKEN`.
+
 ## Paperless-ngx configuration
 
 ### ASN labels
