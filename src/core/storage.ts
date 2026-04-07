@@ -70,7 +70,7 @@ export function createDefaultSettings(): AppSettings {
     startNumber: 1,
     count: preset.columns * preset.rows,
     prefix: "ASN",
-    digits: 6,
+    digits: 5,
     qrColor: "#000000",
     textColor: "#000000",
     showTextPrefix: true,

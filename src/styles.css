@@ -205,6 +205,10 @@ textarea {
   justify-content: center;
 }
 
+.mode-switcher__button--aux {
+  margin-left: 0.8rem;
+}
+
 .mode-switcher__button--active {
   color: var(--primary-container-text);
   background: var(--primary-container);
@@ -975,19 +979,28 @@ textarea {
   inset: 0;
   z-index: 40;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   padding: 1.5rem;
+  overflow-y: auto;
   background: rgba(0, 0, 0, 0.56);
   backdrop-filter: blur(10px);
 }
 
 .modal-card {
   width: min(560px, 100%);
+  margin: auto 0;
   padding: 1.35rem;
   border-radius: 28px;
   background: #1b1b1b;
   box-shadow: 0 22px 54px rgba(0, 0, 0, 0.34);
+}
+
+.modal-card--workflow {
+  width: min(920px, 100%);
+  max-height: min(88vh, 960px);
+  overflow-y: auto;
+  padding: 1.6rem;
 }
 
 .modal-card__header {
@@ -1080,6 +1093,11 @@ textarea {
     grid-template-columns: 1fr;
   }
 
+  .mode-switcher__button--aux {
+    margin-left: 0;
+    margin-top: 0.3rem;
+  }
+
   .form-grid {
     grid-template-columns: 1fr;
   }
@@ -1115,6 +1133,14 @@ textarea {
 
   .overlay-actions .button {
     width: auto;
+  }
+
+  .modal-backdrop {
+    padding: 1rem;
+  }
+
+  .modal-card--workflow {
+    max-height: none;
   }
 
   .color-field__controls {

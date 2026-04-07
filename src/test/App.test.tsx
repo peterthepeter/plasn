@@ -85,6 +85,21 @@ describe("App", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("opens the workflow help modal in german UI", () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: /Deutsch/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Ablaufhilfe/i }));
+
+    expect(screen.getByRole("heading", { name: /Ablaufplan/i })).toBeInTheDocument();
+    expect(
+      screen.getByText(/Etikettenbogen auswählen/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Wenn alle Etiketten ungefähr gleich falsch sitzen/i),
+    ).toBeInTheDocument();
+  });
+
   it("marks generated output stale when text visibility toggles change", () => {
     render(<App />);
 

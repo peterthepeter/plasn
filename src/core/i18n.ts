@@ -37,6 +37,31 @@ const dictionaries: Record<Locale, Dictionary> = {
     calibrationHelpTitle: "Calibration help",
     overlayHelpOpen: "Open overlay test sheet help",
     overlayHelpTitle: "Overlay test sheet help",
+    buttonWorkflowHelp: "Workflow help",
+    workflowHelpTitle: "Workflow guide",
+    workflowHelpIntro:
+      "Use this as the normal Plasn workflow from sheet selection to final calibration.",
+    workflowHelpSheetTitle: "1. Choose the label sheet",
+    workflowHelpSheetBody:
+      "Start with the matching label preset. Only use the custom preset if your sheet is not listed yet. The selected preset defines the sheet geometry for preview, PDF, and print.",
+    workflowHelpConfigTitle: "2. Set up the labels",
+    workflowHelpConfigBody:
+      "Choose start number, optional end number or count, prefix, digits, numbering direction, and start position. These options define which codes are generated and how the visible text appears on the labels.",
+    workflowHelpGenerateTitle: "3. Generate and review",
+    workflowHelpGenerateBody:
+      "Generate the sheet and check the preview before printing. If text looks tight, reduce digits, shorten the prefix, or choose a larger label format.",
+    workflowHelpPrintTitle: "4. Print without scaling",
+    workflowHelpPrintBody:
+      "Download the PDF or print directly, but always use 100% or Actual size. Disable Fit to page and other automatic scaling so the sheet geometry stays exact.",
+    workflowHelpFitTitle: "5. Check alignment on paper",
+    workflowHelpFitBody:
+      "If you are unsure, print the overlay test sheet on plain paper and compare it against a real label sheet against the light. That shows whether the complete print is shifted or whether the spacing drifts across the page.",
+    workflowHelpCalibrationTitle: "6. Fix misalignment with calibration",
+    workflowHelpCalibrationBody:
+      "If every label is offset by about the same amount, adjust Offset X or Y. If the first labels look good but the error grows across rows or columns, adjust Pitch X or Y. Use small steps until the print lands cleanly.",
+    workflowHelpProfilesTitle: "7. Save the working setup",
+    workflowHelpProfilesBody:
+      "Calibration profiles are stored per label preset, so you can keep different setups for different paper stocks or printers. Export profiles if you want a backup or want to move them to another browser.",
     calibrationHelpIntro:
       "Use calibration only when the print does not land exactly on the sheet.",
     calibrationHelpOffsetTitle: "Offset X/Y",
@@ -225,6 +250,31 @@ const dictionaries: Record<Locale, Dictionary> = {
     calibrationHelpTitle: "Hilfe zur Kalibrierung",
     overlayHelpOpen: "Hilfe zum Overlay-Testbogen öffnen",
     overlayHelpTitle: "Hilfe zum Overlay-Testbogen",
+    buttonWorkflowHelp: "Ablaufhilfe",
+    workflowHelpTitle: "Ablaufplan",
+    workflowHelpIntro:
+      "Nutze das als normalen Plasn-Ablauf von der Auswahl des Etikettenbogens bis zur finalen Kalibrierung.",
+    workflowHelpSheetTitle: "1. Etikettenbogen auswählen",
+    workflowHelpSheetBody:
+      "Starte mit dem passenden Etikettenformat. Das eigene Format brauchst du nur, wenn dein Bogen noch nicht in der Liste vorhanden ist. Das gewählte Preset bestimmt die Geometrie für Vorschau, PDF und Druck.",
+    workflowHelpConfigTitle: "2. Etiketten konfigurieren",
+    workflowHelpConfigBody:
+      "Lege Startnummer, optional Endnummer oder Anzahl, Präfix, Stellen, Nummerierungsrichtung und Startposition fest. Diese Angaben bestimmen, welche Codes erzeugt werden und wie der sichtbare Text auf den Etiketten erscheint.",
+    workflowHelpGenerateTitle: "3. Generieren und prüfen",
+    workflowHelpGenerateBody:
+      "Erzeuge den Bogen und prüfe zuerst die Vorschau. Wenn der Text knapp wirkt, reduziere die Stellen, kürze das Präfix oder wähle ein größeres Etikettenformat.",
+    workflowHelpPrintTitle: "4. Ohne Skalierung drucken",
+    workflowHelpPrintBody:
+      "Lade das PDF herunter oder drucke direkt, aber immer mit 100 % oder Tatsächliche Größe. Keine Seitenanpassung und keine automatische Skalierung verwenden, damit die Geometrie exakt bleibt.",
+    workflowHelpFitTitle: "5. Ausrichtung auf Papier prüfen",
+    workflowHelpFitBody:
+      "Wenn du unsicher bist, drucke den Overlay-Testbogen auf Normalpapier und vergleiche ihn gegen das Licht mit einem echten Etikettenbogen. So siehst du schnell, ob das ganze Druckbild verschoben ist oder ob die Abstände über die Seite driften.",
+    workflowHelpCalibrationTitle: "6. Abweichungen über Kalibrierung korrigieren",
+    workflowHelpCalibrationBody:
+      "Wenn alle Etiketten ungefähr gleich falsch sitzen, passe Offset X oder Y an. Wenn die ersten Etiketten gut aussehen, der Fehler aber über Zeilen oder Spalten wächst, passe Pitch X oder Y an. Arbeite in kleinen Schritten, bis der Druck sauber sitzt.",
+    workflowHelpProfilesTitle: "7. Funktionierende Einstellung sichern",
+    workflowHelpProfilesBody:
+      "Kalibrierprofile werden pro Etikettenformat gespeichert. So kannst du unterschiedliche Einstellungen für verschiedene Papierarten oder Drucker behalten. Exportiere die Profile, wenn du ein Backup möchtest oder sie in einen anderen Browser übernehmen willst.",
     calibrationHelpIntro:
       "Nutze die Kalibrierung nur dann, wenn der Druck nicht exakt auf dem Bogen landet.",
     calibrationHelpOffsetTitle: "Offset X/Y",

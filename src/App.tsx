@@ -326,6 +326,7 @@ export function App() {
   const [generatedProfile, setGeneratedProfile] = useState<CalibrationProfile | null>(
     null,
   );
+  const [isWorkflowHelpOpen, setIsWorkflowHelpOpen] = useState(false);
   const [isGeneratorHelpOpen, setIsGeneratorHelpOpen] = useState(false);
   const [isCalibrationHelpOpen, setIsCalibrationHelpOpen] = useState(false);
   const [isProfileActionsOpen, setIsProfileActionsOpen] = useState(false);
@@ -899,6 +900,13 @@ export function App() {
           type="button"
         >
           {t(settings.locale, "optionModeSeparator")}
+        </button>
+        <button
+          class="mode-switcher__button mode-switcher__button--aux"
+          onClick={() => setIsWorkflowHelpOpen(true)}
+          type="button"
+        >
+          {t(settings.locale, "buttonWorkflowHelp")}
         </button>
       </div>
 
@@ -1830,6 +1838,63 @@ export function App() {
               <div class="modal-help-block">
                 <strong>{t(settings.locale, "calibrationHelpExampleTitle")}</strong>
                 <p>{t(settings.locale, "calibrationHelpExampleBody")}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {isWorkflowHelpOpen ? (
+        <div
+          aria-modal="true"
+          class="modal-backdrop"
+          onClick={() => setIsWorkflowHelpOpen(false)}
+          role="dialog"
+        >
+          <div
+            class="modal-card modal-card--workflow"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div class="modal-card__header">
+              <h3>{t(settings.locale, "workflowHelpTitle")}</h3>
+              <button
+                aria-label={t(settings.locale, "modalClose")}
+                class="modal-close"
+                onClick={() => setIsWorkflowHelpOpen(false)}
+                type="button"
+              >
+                ×
+              </button>
+            </div>
+            <div class="modal-card__content">
+              <p>{t(settings.locale, "workflowHelpIntro")}</p>
+              <div class="modal-help-block">
+                <strong>{t(settings.locale, "workflowHelpSheetTitle")}</strong>
+                <p>{t(settings.locale, "workflowHelpSheetBody")}</p>
+              </div>
+              <div class="modal-help-block">
+                <strong>{t(settings.locale, "workflowHelpConfigTitle")}</strong>
+                <p>{t(settings.locale, "workflowHelpConfigBody")}</p>
+              </div>
+              <div class="modal-help-block">
+                <strong>{t(settings.locale, "workflowHelpGenerateTitle")}</strong>
+                <p>{t(settings.locale, "workflowHelpGenerateBody")}</p>
+              </div>
+              <div class="modal-help-block">
+                <strong>{t(settings.locale, "workflowHelpPrintTitle")}</strong>
+                <p>{t(settings.locale, "workflowHelpPrintBody")}</p>
+              </div>
+              <div class="modal-help-block">
+                <strong>{t(settings.locale, "workflowHelpFitTitle")}</strong>
+                <p>{t(settings.locale, "workflowHelpFitBody")}</p>
+              </div>
+              <div class="modal-help-block">
+                <strong>{t(settings.locale, "workflowHelpCalibrationTitle")}</strong>
+                <p>{t(settings.locale, "workflowHelpCalibrationBody")}</p>
+              </div>
+              <div class="modal-help-block">
+                <strong>{t(settings.locale, "workflowHelpProfilesTitle")}</strong>
+                <p>{t(settings.locale, "workflowHelpProfilesBody")}</p>
               </div>
             </div>
           </div>
