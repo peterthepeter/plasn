@@ -3,6 +3,8 @@
 :root {
   color-scheme: dark;
   font-family: "Public Sans", system-ui, sans-serif;
+  --page-surface: #121518;
+  --canvas-surface: #1b1f23;
   --surface: #111416;
   --surface-lowest: #0c0e10;
   --surface-low: #15181b;
@@ -16,13 +18,13 @@
   --on-surface: #ffffff;
   --on-surface-variant: #adaaaa;
   --outline-ghost: rgba(72, 72, 71, 0.2);
-  --card-surface: rgba(27, 31, 35, 0.94);
-  --card-border: rgba(255, 255, 255, 0.06);
+  --card-surface: var(--canvas-surface);
+  --card-border: rgba(255, 255, 255, 0.055);
   --field-surface: #23282e;
   --field-surface-hover: #272d33;
-  --field-border: rgba(255, 255, 255, 0.08);
-  --field-border-strong: rgba(255, 255, 255, 0.12);
-  --field-focus-outline: rgba(238, 242, 241, 0.68);
+  --field-border: rgba(255, 255, 255, 0.055);
+  --field-border-strong: rgba(255, 255, 255, 0.11);
+  --field-focus-outline: rgba(238, 242, 241, 0.34);
   --control-height: 2.05rem;
   --control-radius: 10px;
   --control-padding-x: 0.82rem;
@@ -60,7 +62,7 @@ body,
 
 body {
   margin: 0;
-  background: #101214;
+  background: var(--page-surface);
   color: var(--on-surface);
   font-feature-settings: "cv05" 1;
   -webkit-font-smoothing: antialiased;
@@ -181,9 +183,9 @@ textarea {
   margin: 0 auto 1.8rem;
   max-width: var(--layout-width);
   padding: 0.9rem 1.2rem 0.85rem;
-  background: rgba(28, 32, 36, 0.94);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(20px);
+  background: var(--canvas-surface);
+  border: 1px solid var(--card-border);
+  backdrop-filter: none;
   border-radius: 24px;
   box-shadow: none;
 }
@@ -561,7 +563,7 @@ textarea {
 .field textarea:focus {
   outline: none;
   border-color: var(--field-focus-outline);
-  box-shadow: none;
+  box-shadow: 0 0 0 1px rgba(238, 242, 241, 0.12);
 }
 
 .field textarea {
@@ -578,15 +580,73 @@ textarea {
   background-size: 0.72rem;
 }
 
+.number-input {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
 .field input[type="number"] {
-  padding-right: 0.2rem;
+  appearance: textfield;
+  -moz-appearance: textfield;
+  padding-right: 1.35rem;
 }
 
 .field input[type="number"]::-webkit-outer-spin-button,
 .field input[type="number"]::-webkit-inner-spin-button {
-  opacity: 1;
+  -webkit-appearance: none;
   margin: 0;
-  filter: invert(0.85);
+}
+
+.number-input__steppers {
+  position: absolute;
+  top: 50%;
+  right: 0.24rem;
+  width: 0.82rem;
+  height: 0.95rem;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 0;
+  transform: translateY(-50%);
+}
+
+.number-input__stepper {
+  border: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: #9aa2a8;
+  cursor: pointer;
+  transition: color 180ms ease, background-color 180ms ease;
+}
+
+.number-input__stepper svg {
+  width: 0.52rem;
+  height: 0.52rem;
+}
+
+.number-input__stepper--up {
+  border-top-right-radius: 9px;
+}
+
+.number-input__stepper--down {
+  border-bottom-right-radius: 9px;
+}
+
+.number-input__stepper:hover:not(:disabled) {
+  color: #c0c7cc;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.number-input__stepper:active:not(:disabled) {
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.number-input__stepper:disabled {
+  color: rgba(154, 162, 168, 0.42);
+  cursor: default;
 }
 
 .toggle-row {

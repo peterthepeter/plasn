@@ -1,3 +1,4 @@
+import type { JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { PreviewPanel } from "./components/PreviewPanel";
 import { normalizeHexColor } from "./core/color";
@@ -334,6 +335,73 @@ interface DirectionFieldProps {
   locale: Locale;
   value: GeneratorConfig["numberingDirection"];
   onChange: (value: GeneratorConfig["numberingDirection"]) => void;
+}
+
+type NumberInputProps = Omit<JSX.InputHTMLAttributes<HTMLInputElement>, "type">;
+
+function NumberInput(props: NumberInputProps) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const isDisabled = Boolean(props.disabled || props.readOnly);
+
+  const stepValue = (direction: 1 | -1) => {
+    const input = inputRef.current;
+    if (!input || isDisabled) {
+      return;
+    }
+
+    if (direction > 0) {
+      input.stepUp();
+    } else {
+      input.stepDown();
+    }
+
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.focus();
+  };
+
+  return (
+    <span class="number-input">
+      <input {...props} ref={inputRef} type="number" />
+      <span aria-hidden="true" class="number-input__steppers">
+        <button
+          class="number-input__stepper number-input__stepper--up"
+          disabled={isDisabled}
+          onClick={() => stepValue(1)}
+          onMouseDown={(event) => event.preventDefault()}
+          tabIndex={-1}
+          type="button"
+        >
+          <svg fill="none" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M2 6.5 5 3.5l3 3"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.2"
+            />
+          </svg>
+        </button>
+        <button
+          class="number-input__stepper number-input__stepper--down"
+          disabled={isDisabled}
+          onClick={() => stepValue(-1)}
+          onMouseDown={(event) => event.preventDefault()}
+          tabIndex={-1}
+          type="button"
+        >
+          <svg fill="none" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="m2 3.5 3 3 3-3"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.2"
+            />
+          </svg>
+        </button>
+      </span>
+    </span>
+  );
 }
 
 function DirectionField({ locale, value, onChange }: DirectionFieldProps) {
@@ -1104,7 +1172,7 @@ export function App() {
               <div class="form-grid form-grid--dense">
                 <label class="field">
                   <span>{t(settings.locale, "fieldRows")}</span>
-                  <input
+                  <NumberInput
                     min={1}
                     onInput={(event) =>
                       updateCustomPreset(
@@ -1115,13 +1183,12 @@ export function App() {
                         ),
                       )
                     }
-                    type="number"
                     value={settings.customPreset.rows}
                   />
                 </label>
                 <label class="field">
                   <span>{t(settings.locale, "fieldColumns")}</span>
-                  <input
+                  <NumberInput
                     min={1}
                     onInput={(event) =>
                       updateCustomPreset(
@@ -1132,13 +1199,12 @@ export function App() {
                         ),
                       )
                     }
-                    type="number"
                     value={settings.customPreset.columns}
                   />
                 </label>
                 <label class="field">
                   <span>{t(settings.locale, "fieldPageWidth")}</span>
-                  <input
+                  <NumberInput
                     min={10}
                     onInput={(event) =>
                       updateCustomPreset(
@@ -1147,13 +1213,12 @@ export function App() {
                       )
                     }
                     step="0.01"
-                    type="number"
                     value={settings.customPreset.pageWidthMm}
                   />
                 </label>
                 <label class="field">
                   <span>{t(settings.locale, "fieldPageHeight")}</span>
-                  <input
+                  <NumberInput
                     min={10}
                     onInput={(event) =>
                       updateCustomPreset(
@@ -1162,13 +1227,12 @@ export function App() {
                       )
                     }
                     step="0.01"
-                    type="number"
                     value={settings.customPreset.pageHeightMm}
                   />
                 </label>
                 <label class="field">
                   <span>{t(settings.locale, "fieldLabelWidth")}</span>
-                  <input
+                  <NumberInput
                     min={1}
                     onInput={(event) =>
                       updateCustomPreset(
@@ -1177,13 +1241,12 @@ export function App() {
                       )
                     }
                     step="0.01"
-                    type="number"
                     value={settings.customPreset.labelWidthMm}
                   />
                 </label>
                 <label class="field">
                   <span>{t(settings.locale, "fieldLabelHeight")}</span>
-                  <input
+                  <NumberInput
                     min={1}
                     onInput={(event) =>
                       updateCustomPreset(
@@ -1192,13 +1255,12 @@ export function App() {
                       )
                     }
                     step="0.01"
-                    type="number"
                     value={settings.customPreset.labelHeightMm}
                   />
                 </label>
                 <label class="field">
                   <span>{t(settings.locale, "fieldGutterX")}</span>
-                  <input
+                  <NumberInput
                     onInput={(event) =>
                       updateCustomPreset(
                         "gutterXMm",
@@ -1206,13 +1268,12 @@ export function App() {
                       )
                     }
                     step="0.01"
-                    type="number"
                     value={settings.customPreset.gutterXMm}
                   />
                 </label>
                 <label class="field">
                   <span>{t(settings.locale, "fieldGutterY")}</span>
-                  <input
+                  <NumberInput
                     onInput={(event) =>
                       updateCustomPreset(
                         "gutterYMm",
@@ -1220,13 +1281,12 @@ export function App() {
                       )
                     }
                     step="0.01"
-                    type="number"
                     value={settings.customPreset.gutterYMm}
                   />
                 </label>
                 <label class="field">
                   <span>{t(settings.locale, "fieldMarginLeft")}</span>
-                  <input
+                  <NumberInput
                     onInput={(event) =>
                       updateCustomPreset(
                         "marginLeftMm",
@@ -1234,13 +1294,12 @@ export function App() {
                       )
                     }
                     step="0.01"
-                    type="number"
                     value={settings.customPreset.marginLeftMm}
                   />
                 </label>
                 <label class="field">
                   <span>{t(settings.locale, "fieldMarginTop")}</span>
-                  <input
+                  <NumberInput
                     onInput={(event) =>
                       updateCustomPreset(
                         "marginTopMm",
@@ -1248,13 +1307,12 @@ export function App() {
                       )
                     }
                     step="0.01"
-                    type="number"
                     value={settings.customPreset.marginTopMm}
                   />
                 </label>
                 <label class="field">
                   <span>{t(settings.locale, "fieldInnerPadding")}</span>
-                  <input
+                  <NumberInput
                     min={0}
                     onInput={(event) =>
                       updateCustomPreset(
@@ -1263,13 +1321,12 @@ export function App() {
                       )
                     }
                     step="0.01"
-                    type="number"
                     value={settings.customPreset.innerPaddingMm}
                   />
                 </label>
                 <label class="field">
                   <span>{t(settings.locale, "fieldQrScale")}</span>
-                  <input
+                  <NumberInput
                     min={0.2}
                     max={1}
                     onInput={(event) =>
@@ -1279,13 +1336,12 @@ export function App() {
                       )
                     }
                     step="0.01"
-                    type="number"
                     value={settings.customPreset.qrScale}
                   />
                 </label>
                 <label class="field field--full">
                   <span>{t(settings.locale, "fieldTextGap")}</span>
-                  <input
+                  <NumberInput
                     min={0}
                     onInput={(event) =>
                       updateCustomPreset(
@@ -1294,7 +1350,6 @@ export function App() {
                       )
                     }
                     step="0.01"
-                    type="number"
                     value={settings.customPreset.textGapMm}
                   />
                 </label>
@@ -1308,7 +1363,7 @@ export function App() {
             <div class="form-grid form-grid--generator">
               <label class="field">
                 <span>{t(settings.locale, "fieldStartNumber")}</span>
-                <input
+                <NumberInput
                   min={1}
                   onInput={(event) =>
                     updateSettings({
@@ -1318,13 +1373,12 @@ export function App() {
                       ),
                     })
                   }
-                  type="number"
                   value={settings.startNumber}
                 />
               </label>
               <label class="field">
                 <span>{t(settings.locale, "fieldEndNumber")}</span>
-                <input
+                <NumberInput
                   min={settings.startNumber}
                   onInput={(event) =>
                     updateSettings({
@@ -1333,13 +1387,12 @@ export function App() {
                       ),
                     })
                   }
-                  type="number"
                   value={settings.endNumber ?? suggestedEndNumber}
                 />
               </label>
               <label class="field">
                 <span>{t(settings.locale, "fieldCount")}</span>
-                <input
+                <NumberInput
                   min={1}
                   onInput={(event) =>
                     updateSettings({
@@ -1348,7 +1401,6 @@ export function App() {
                       ),
                     })
                   }
-                  type="number"
                   value={settings.count ?? ""}
                 />
               </label>
@@ -1381,7 +1433,7 @@ export function App() {
               </label>
               <label class="field">
                 <span>{t(settings.locale, "fieldDigits")}</span>
-                <input
+                <NumberInput
                   min={1}
                   onInput={(event) =>
                     updateSettings({
@@ -1391,7 +1443,6 @@ export function App() {
                     })
                   }
                   max={MAX_ASN_DIGITS}
-                  type="number"
                   value={settings.digits}
                 />
               </label>
@@ -1562,7 +1613,7 @@ export function App() {
             <div class="calibration-controls-grid">
               <label class="field field--compact">
                 <span>{t(settings.locale, "fieldOffsetX")}</span>
-                <input
+                <NumberInput
                   onInput={(event) =>
                     updateProfile({
                       offsetXMm:
@@ -1570,13 +1621,12 @@ export function App() {
                     })
                   }
                   step="0.01"
-                  type="number"
                   value={selectedProfile.offsetXMm}
                 />
               </label>
               <label class="field field--compact">
                 <span>{t(settings.locale, "fieldOffsetY")}</span>
-                <input
+                <NumberInput
                   onInput={(event) =>
                     updateProfile({
                       offsetYMm:
@@ -1584,13 +1634,12 @@ export function App() {
                     })
                   }
                   step="0.01"
-                  type="number"
                   value={selectedProfile.offsetYMm}
                 />
               </label>
               <label class="field field--compact">
                 <span>{t(settings.locale, "fieldPitchX")}</span>
-                <input
+                <NumberInput
                   onInput={(event) =>
                     updateProfile({
                       pitchAdjustXMm:
@@ -1598,13 +1647,12 @@ export function App() {
                     })
                   }
                   step="0.01"
-                  type="number"
                   value={selectedProfile.pitchAdjustXMm}
                 />
               </label>
               <label class="field field--compact">
                 <span>{t(settings.locale, "fieldPitchY")}</span>
-                <input
+                <NumberInput
                   onInput={(event) =>
                     updateProfile({
                       pitchAdjustYMm:
@@ -1612,7 +1660,6 @@ export function App() {
                     })
                   }
                   step="0.01"
-                  type="number"
                   value={selectedProfile.pitchAdjustYMm}
                 />
               </label>
