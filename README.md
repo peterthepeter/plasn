@@ -1,5 +1,5 @@
 <h1>
-  <img src="public/plasn-mark-256.png" alt="Plasn logo" width="120" align="left" />
+  <img src="public/plasn-mark.svg" alt="Plasn logo" width="120" align="left" />
   <span>Plasn</span>
 </h1>
 
