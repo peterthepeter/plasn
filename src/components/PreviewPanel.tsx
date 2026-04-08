@@ -1,7 +1,9 @@
+import type { ComponentChildren } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { getRunTotalWidth } from "../core/code128";
+import { getLabelTextCssFamily } from "../core/labelFonts";
 import { getQrDataUrl } from "../core/qr";
-import type { GeneratedDocumentLayout, Locale } from "../core/types";
+import type { GeneratedDocumentLayout, LabelTextFontFamily, Locale } from "../core/types";
 import { t } from "../core/i18n";
 
 interface PreviewPanelProps {
@@ -9,8 +11,11 @@ interface PreviewPanelProps {
   locale: Locale;
   qrColor: string;
   textColor: string;
+  textFontFamily: LabelTextFontFamily;
   pageIndex: number;
   onPageChange: (pageIndex: number) => void;
+  actions?: ComponentChildren;
+  footer?: ComponentChildren;
 }
 
 export function PreviewPanel({
@@ -18,13 +23,20 @@ export function PreviewPanel({
   locale,
   qrColor,
   textColor,
+  textFontFamily,
   pageIndex,
   onPageChange,
+  actions,
+  footer,
 }: PreviewPanelProps) {
   if (!layout) {
     return (
-      <div class="preview-empty">
-        <p>{t(locale, "previewGenerateHint")}</p>
+      <div class="preview-shell">
+        {actions ? <div class="button-row button-row--preview">{actions}</div> : null}
+        <div class="preview-empty">
+          <p>{t(locale, "previewGenerateHint")}</p>
+        </div>
+        {footer}
       </div>
     );
   }
@@ -76,8 +88,8 @@ export function PreviewPanel({
     }
 
     const updateScale = () => {
-      const availableWidth = Math.max(element.clientWidth - 24, 220);
-      setScale(Math.min(3.2, availableWidth / page.pageWidthMm));
+      const availableWidth = Math.max(element.clientWidth, 220);
+      setScale((availableWidth / page.pageWidthMm) * 0.98);
     };
 
     updateScale();
@@ -88,167 +100,188 @@ export function PreviewPanel({
 
   if (!page) {
     return (
-      <div class="preview-empty">
-        <p>{t(locale, "previewNoPages")}</p>
+      <div class="preview-shell">
+        {actions ? <div class="button-row button-row--preview">{actions}</div> : null}
+        <div class="preview-empty">
+          <p>{t(locale, "previewNoPages")}</p>
+        </div>
+        {footer}
       </div>
     );
   }
 
   return (
     <div class="preview-shell">
-      <div class="preview-toolbar">
-        <span class="preview-toolbar__meta">
-          {layout.kind === "separator"
-            ? t(locale, "previewMetaSeparator", {
-                page: pageIndex + 1,
-                pages: layout.pages.length,
-              })
-            : t(locale, "previewMeta", {
-                page: pageIndex + 1,
-                pages: layout.pages.length,
-                count: layout.resolvedCount,
-                nextStart: layout.resolvedEndNumber + 1,
-              })}
-        </span>
-        {layout.pages.length > 1 ? (
-          <div class="preview-toolbar__actions">
-            <button
-              class="preview-toolbar__nav"
-              disabled={pageIndex <= 0}
-              onClick={() => onPageChange(Math.max(0, pageIndex - 1))}
-              type="button"
-            >
-              ‹
-            </button>
-            <button
-              class="preview-toolbar__nav"
-              disabled={pageIndex >= layout.pages.length - 1}
-              onClick={() =>
-                onPageChange(Math.min(layout.pages.length - 1, pageIndex + 1))
-              }
-              type="button"
-            >
-              ›
-            </button>
-          </div>
-        ) : null}
-      </div>
-
       <div class="preview-surface" ref={surfaceRef}>
         <div
-          class="preview-page"
+          class="preview-frame"
           style={{
             width: `${page.pageWidthMm * scale}px`,
-            height: `${page.pageHeightMm * scale}px`,
           }}
         >
-          {separatorPage ? (
-            <>
-              <div
-                class="preview-separator__headline"
-                style={{
-                  left: `${separatorPage.headline.xMm * scale}px`,
-                  top: `${separatorPage.headline.yMm * scale}px`,
-                  width: `${separatorPage.headline.widthMm * scale}px`,
-                  height: `${separatorPage.headline.heightMm * scale}px`,
-                  fontSize: `${separatorPage.headline.fontSizeMm * scale}px`,
-                  color: textColor,
-                }}
-              >
-                {separatorPage.headline.text}
+          {actions ? <div class="button-row button-row--preview">{actions}</div> : null}
+
+          <div class="preview-toolbar">
+            <span class="preview-toolbar__meta">
+              {layout.kind === "separator"
+                ? t(locale, "previewMetaSeparator", {
+                    page: pageIndex + 1,
+                    pages: layout.pages.length,
+                  })
+                : t(locale, "previewMeta", {
+                    page: pageIndex + 1,
+                    pages: layout.pages.length,
+                    count: layout.resolvedCount,
+                    nextStart: layout.resolvedEndNumber + 1,
+                  })}
+            </span>
+            {layout.pages.length > 1 ? (
+              <div class="preview-toolbar__actions">
+                <button
+                  class="preview-toolbar__nav"
+                  disabled={pageIndex <= 0}
+                  onClick={() => onPageChange(Math.max(0, pageIndex - 1))}
+                  type="button"
+                >
+                  ‹
+                </button>
+                <button
+                  class="preview-toolbar__nav"
+                  disabled={pageIndex >= layout.pages.length - 1}
+                  onClick={() =>
+                    onPageChange(Math.min(layout.pages.length - 1, pageIndex + 1))
+                  }
+                  type="button"
+                >
+                  ›
+                </button>
               </div>
-              <div
-                class="preview-separator__barcode"
-                style={{
-                  left: `${separatorPage.barcode.xMm * scale}px`,
-                  top: `${separatorPage.barcode.yMm * scale}px`,
-                  width: `${separatorPage.barcode.widthMm * scale}px`,
-                  height: `${separatorPage.barcode.heightMm * scale}px`,
-                }}
-              >
-                {(() => {
-                  const totalUnits = getRunTotalWidth(separatorPage.barcode.runs);
-                  const unitWidth =
-                    (separatorPage.barcode.widthMm * scale) / totalUnits;
-                  let cursor = 0;
-                  return separatorPage.barcode.runs.map((run, index) => {
-                    const width = run * unitWidth;
-                    const node =
-                      index % 2 === 0 ? (
-                        <span
-                          class="preview-separator__bar"
-                          key={`bar-${index}`}
-                          style={{
-                            left: `${cursor}px`,
-                            width: `${width}px`,
-                            backgroundColor: qrColor,
-                          }}
-                        />
-                      ) : null;
-                    cursor += width;
-                    return node;
-                  });
-                })()}
-              </div>
-              {separatorPage.freeText ? (
+            ) : null}
+          </div>
+
+          <div
+            class="preview-page"
+            style={{
+              width: `${page.pageWidthMm * scale}px`,
+              height: `${page.pageHeightMm * scale}px`,
+            }}
+          >
+            {separatorPage ? (
+              <>
                 <div
-                  class="preview-separator__text"
+                  class="preview-separator__headline"
                   style={{
-                    left: `${separatorPage.freeText.xMm * scale}px`,
-                    top: `${separatorPage.freeText.yMm * scale}px`,
-                    width: `${separatorPage.freeText.widthMm * scale}px`,
-                    height: `${separatorPage.freeText.heightMm * scale}px`,
-                    fontSize: `${separatorPage.freeText.fontSizeMm * scale}px`,
+                    left: `${separatorPage.headline.xMm * scale}px`,
+                    top: `${separatorPage.headline.yMm * scale}px`,
+                    width: `${separatorPage.headline.widthMm * scale}px`,
+                    height: `${separatorPage.headline.heightMm * scale}px`,
+                    fontSize: `${separatorPage.headline.fontSizeMm * scale}px`,
                     color: textColor,
                   }}
                 >
-                  {separatorPage.freeText.text}
+                  {separatorPage.headline.text}
                 </div>
-              ) : null}
-            </>
-          ) : (
-            asnPage?.items.map((item) => (
-              <div
-                class={`preview-label${item.isTightFit ? " preview-label--tight" : ""}`}
-                key={item.id}
-                style={{
-                  left: `${item.xMm * scale}px`,
-                  top: `${item.yMm * scale}px`,
-                  width: `${item.widthMm * scale}px`,
-                  height: `${item.heightMm * scale}px`,
-                }}
-              >
-                {layout.kind === "asn" && layout.showBorders ? (
-                  <div class="preview-label__debug" />
+                <div
+                  class="preview-separator__barcode"
+                  style={{
+                    left: `${separatorPage.barcode.xMm * scale}px`,
+                    top: `${separatorPage.barcode.yMm * scale}px`,
+                    width: `${separatorPage.barcode.widthMm * scale}px`,
+                    height: `${separatorPage.barcode.heightMm * scale}px`,
+                  }}
+                >
+                  {(() => {
+                    const totalUnits = getRunTotalWidth(separatorPage.barcode.runs);
+                    const unitWidth =
+                      (separatorPage.barcode.widthMm * scale) / totalUnits;
+                    let cursor = 0;
+                    return separatorPage.barcode.runs.map((run, index) => {
+                      const width = run * unitWidth;
+                      const node =
+                        index % 2 === 0 ? (
+                          <span
+                            class="preview-separator__bar"
+                            key={`bar-${index}`}
+                            style={{
+                              left: `${cursor}px`,
+                              width: `${width}px`,
+                              backgroundColor: qrColor,
+                            }}
+                          />
+                        ) : null;
+                      cursor += width;
+                      return node;
+                    });
+                  })()}
+                </div>
+                {separatorPage.freeText ? (
+                  <div
+                    class="preview-separator__text"
+                    style={{
+                      left: `${separatorPage.freeText.xMm * scale}px`,
+                      top: `${separatorPage.freeText.yMm * scale}px`,
+                      width: `${separatorPage.freeText.widthMm * scale}px`,
+                      height: `${separatorPage.freeText.heightMm * scale}px`,
+                      fontSize: `${separatorPage.freeText.fontSizeMm * scale}px`,
+                      color: textColor,
+                    }}
+                  >
+                    {separatorPage.freeText.text}
+                  </div>
                 ) : null}
-                <img
-                  alt=""
-                  class="preview-label__qr"
-                  src={qrMap[item.encodedText]}
-                  style={{
-                    left: `${(item.qrXmm - item.xMm) * scale}px`,
-                    top: `${(item.qrYmm - item.yMm) * scale}px`,
-                    width: `${item.qrSizeMm * scale}px`,
-                    height: `${item.qrSizeMm * scale}px`,
-                  }}
-                />
+              </>
+            ) : (
+              asnPage?.items.map((item) => (
                 <div
-                  class="preview-label__text"
+                  class={`preview-label${item.isTightFit ? " preview-label--tight" : ""}`}
+                  key={item.id}
                   style={{
-                    left: `${(item.textXmm - item.xMm + item.textOffsetMm) * scale}px`,
-                    top: `${(item.textYmm - item.yMm) * scale}px`,
-                    width: `${item.textWidthMm * scale}px`,
-                    height: `${item.textHeightMm * scale}px`,
-                    fontSize: `${item.textSizeMm * scale}px`,
-                    color: textColor,
-                    transform: `scaleX(${item.textScaleX})`,
+                    left: `${item.xMm * scale}px`,
+                    top: `${item.yMm * scale}px`,
+                    width: `${item.widthMm * scale}px`,
+                    height: `${item.heightMm * scale}px`,
                   }}
                 >
-                  {item.displayText}
+                  {layout.kind === "asn" && layout.showBorders ? (
+                    <div class="preview-label__debug" />
+                  ) : null}
+                  <img
+                    alt=""
+                    class="preview-label__qr"
+                    src={qrMap[item.encodedText]}
+                    style={{
+                      left: `${(item.qrXmm - item.xMm) * scale}px`,
+                      top: `${(item.qrYmm - item.yMm) * scale}px`,
+                      width: `${item.qrSizeMm * scale}px`,
+                      height: `${item.qrSizeMm * scale}px`,
+                    }}
+                  />
+                  <div
+                    class="preview-label__text"
+                    style={{
+                      left: `${(item.textXmm - item.xMm) * scale}px`,
+                      top: `${(item.textYmm - item.yMm) * scale}px`,
+                      width: `${item.textWidthMm * scale}px`,
+                      height: `${item.textHeightMm * scale}px`,
+                      fontSize: `${item.textSizeMm * scale}px`,
+                      lineHeight: `${item.textLineHeightMm * scale}px`,
+                      color: textColor,
+                      fontFamily: getLabelTextCssFamily(textFontFamily),
+                      transform: `scaleX(${item.textScaleX})`,
+                    }}
+                  >
+                    {item.textLines.map((line, index) => (
+                      <span class="preview-label__line" key={`${item.id}-${index}`}>
+                        {line}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))
-          )}
+              ))
+            )}
+          </div>
+
+          {footer}
         </div>
       </div>
     </div>

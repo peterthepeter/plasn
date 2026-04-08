@@ -13,6 +13,7 @@ function makeConfig(overrides: Partial<GeneratorConfig> = {}): GeneratorConfig {
     digits: 6,
     qrColor: "#000000",
     textColor: "#000000",
+    textFontFamily: "helvetica",
     showTextPrefix: true,
     showTextLeadingZeros: true,
     numberingDirection: "column",
@@ -103,8 +104,8 @@ describe("generateLayout", () => {
   });
 
   it("limits ASN digits and prefix length", () => {
-    expect(clampAsnDigits(9)).toBe(6);
+    expect(clampAsnDigits(9)).toBe(7);
     expect(clampAsnDigits(0)).toBe(1);
-    expect(normalizeAsnPrefix("PREFIX")).toBe("PREFI");
+    expect(normalizeAsnPrefix("PREFIXED")).toBe("PREFIXE");
   });
 });

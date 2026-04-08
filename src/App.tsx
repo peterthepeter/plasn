@@ -13,6 +13,7 @@ import {
   normalizeSeparatorFreeText,
   normalizeSeparatorHeadline,
 } from "./core/limits";
+import { LABEL_TEXT_FONT_OPTIONS } from "./core/labelFonts";
 import { generateLayout } from "./core/layout";
 import { fallbackBarcodeValue, generateSeparatorLayout } from "./core/separatorLayout";
 import { t, warningMessage } from "./core/i18n";
@@ -68,6 +69,19 @@ function numericValue(value: string): number | undefined {
   }
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function sanitizeHexDraft(value: string): string {
+  const normalized = value.toUpperCase().replace(/[^#0-9A-F]/g, "");
+  if (normalized === "") {
+    return "";
+  }
+
+  const withSingleHash = normalized.startsWith("#")
+    ? `#${normalized.slice(1).replace(/#/g, "")}`
+    : `#${normalized.replace(/#/g, "")}`;
+
+  return withSingleHash.slice(0, 7);
 }
 
 function downloadBlob(blob: Blob, filename: string): void {
@@ -163,6 +177,7 @@ function buildGenerationKey(
     locale: settings.locale,
     barcodeColor,
     textColor,
+    textFontFamily: settings.textFontFamily,
     settings: {
       generatorMode: settings.generatorMode,
       startNumber: settings.startNumber,
@@ -170,6 +185,7 @@ function buildGenerationKey(
       count: settings.count,
       prefix: settings.prefix,
       digits: settings.digits,
+      textFontFamily: settings.textFontFamily,
       showTextPrefix: settings.showTextPrefix,
       showTextLeadingZeros: settings.showTextLeadingZeros,
       numberingDirection: settings.numberingDirection,
@@ -228,9 +244,9 @@ function ColorField({
     LABEL_COLOR_PRESETS.find((entry) => entry.value === value) ?? null;
 
   return (
-    <div class="field color-field">
-      <span>{label}</span>
-      <div class="color-field__controls">
+    <div class="color-field">
+      <span class="color-field__label">{label}</span>
+      <div class="color-field__combo" ref={colorMenuRef}>
         <div
           aria-hidden="true"
           class="color-field__swatch-preview"
@@ -242,7 +258,9 @@ function ColorField({
             class="color-field__input"
             onBlur={() => onCommit(draft)}
             onInput={(event) =>
-              onDraftChange((event.currentTarget as HTMLInputElement).value)
+              onDraftChange(
+                sanitizeHexDraft((event.currentTarget as HTMLInputElement).value),
+              )
             }
             onKeyDown={(event) => {
               if (event.key === "Enter") {
@@ -255,54 +273,158 @@ function ColorField({
             value={draft}
           />
         </div>
-        <div class="color-menu" ref={colorMenuRef}>
-          <button
-            aria-expanded={isColorMenuOpen}
-            aria-haspopup="listbox"
-            class="color-menu__trigger"
-            onClick={() => setIsColorMenuOpen((current) => !current)}
-            type="button"
-          >
-            <span
-              aria-hidden="true"
-              class="color-menu__dot color-menu__dot--trigger"
-              style={{ backgroundColor: value }}
-            />
-            <span class="color-menu__trigger-label">
-              {activeColorPreset?.label ?? value}
-            </span>
-            <span aria-hidden="true" class="color-menu__chevron">
-              ▾
-            </span>
-          </button>
-          {isColorMenuOpen ? (
-            <div class="color-menu__popover" role="listbox">
-              {LABEL_COLOR_PRESETS.map((color) => (
-                <button
-                  aria-selected={value === color.value}
-                  class={`color-menu__option${
-                    value === color.value ? " color-menu__option--active" : ""
-                  }`}
-                  key={color.value}
-                  onClick={() => {
-                    onCommit(color.value);
-                    setIsColorMenuOpen(false);
-                  }}
-                  role="option"
-                  type="button"
-                >
-                  <span
-                    aria-hidden="true"
-                    class="color-menu__dot color-menu__dot--option"
-                    style={{ backgroundColor: color.value }}
-                  />
-                  <span class="color-menu__option-label">{color.label}</span>
-                  <span class="color-menu__option-value">{color.value}</span>
-                </button>
-              ))}
-            </div>
-          ) : null}
-        </div>
+        <button
+          aria-expanded={isColorMenuOpen}
+          aria-haspopup="listbox"
+          aria-label={`${label} presets`}
+          class="color-menu__trigger"
+          onClick={() => setIsColorMenuOpen((current) => !current)}
+          type="button"
+        >
+          <span aria-hidden="true" class="color-menu__chevron">
+            <svg
+              class="color-menu__chevron-icon"
+              fill="none"
+              viewBox="0 0 16 16"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m4 6 4 4 4-4"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.6"
+              />
+            </svg>
+          </span>
+        </button>
+        {isColorMenuOpen ? (
+          <div class="color-menu__popover" role="listbox">
+            {LABEL_COLOR_PRESETS.map((color) => (
+              <button
+                aria-selected={value === color.value}
+                class={`color-menu__option${
+                  value === color.value ? " color-menu__option--active" : ""
+                }`}
+                key={color.value}
+                onClick={() => {
+                  onCommit(color.value);
+                  setIsColorMenuOpen(false);
+                }}
+                role="option"
+                type="button"
+              >
+                <span
+                  aria-hidden="true"
+                  class="color-menu__dot color-menu__dot--option"
+                  style={{ backgroundColor: color.value }}
+                />
+                <span class="color-menu__option-label">{color.label}</span>
+                <span class="color-menu__option-value">{color.value}</span>
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+interface DirectionFieldProps {
+  locale: Locale;
+  value: GeneratorConfig["numberingDirection"];
+  onChange: (value: GeneratorConfig["numberingDirection"]) => void;
+}
+
+function DirectionField({ locale, value, onChange }: DirectionFieldProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!menuRef.current?.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, [isOpen]);
+
+  const options: Array<{
+    value: GeneratorConfig["numberingDirection"];
+    shortLabel: string;
+    detail: string;
+  }> = [
+    {
+      value: "row",
+      shortLabel: t(locale, "optionRowShort"),
+      detail: t(locale, "optionRowDetail"),
+    },
+    {
+      value: "column",
+      shortLabel: t(locale, "optionColumnShort"),
+      detail: t(locale, "optionColumnDetail"),
+    },
+  ];
+
+  const activeOption = options.find((option) => option.value === value) ?? options[0];
+
+  return (
+    <div class="field field--span-2">
+      <span>{t(locale, "fieldDirection")}</span>
+      <div class="direction-field" ref={menuRef}>
+        <button
+          aria-expanded={isOpen}
+          aria-haspopup="listbox"
+          class="direction-field__trigger"
+          onClick={() => setIsOpen((current) => !current)}
+          type="button"
+        >
+          <span class="direction-field__trigger-label">{activeOption.shortLabel}</span>
+          <span aria-hidden="true" class="color-menu__chevron">
+            <svg
+              class="color-menu__chevron-icon"
+              fill="none"
+              viewBox="0 0 16 16"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m4 6 4 4 4-4"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.6"
+              />
+            </svg>
+          </span>
+        </button>
+        {isOpen ? (
+          <div class="direction-field__popover" role="listbox">
+            {options.map((option) => (
+              <button
+                aria-selected={option.value === value}
+                class={`direction-field__option${
+                  option.value === value ? " direction-field__option--active" : ""
+                }`}
+                key={option.value}
+                onClick={() => {
+                  onChange(option.value);
+                  setIsOpen(false);
+                }}
+                role="option"
+                type="button"
+              >
+                <span class="direction-field__option-title">{option.shortLabel}</span>
+                <span class="direction-field__option-detail">{option.detail}</span>
+              </button>
+            ))}
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -427,16 +549,6 @@ export function App() {
       : null;
   const hasGeneratedExport =
     layout !== null && generatedStateKey === liveSettingsKey;
-  const topbarStatus =
-    settings.generatorMode === "separator"
-      ? t(settings.locale, "separatorStatus", {
-          paperSize: getSeparatorPaperLabel(
-            settings.locale,
-            settings.separatorPaperSize,
-          ),
-        })
-      : formatPresetLabel(settings.locale, preset);
-
   useEffect(() => {
     setAllProfiles((current) => {
       const existingProfiles = current[settings.presetId];
@@ -638,6 +750,7 @@ export function App() {
         generatedSettings?.generatorMode === "separator"
           ? generatedSettings.separatorTextColor
           : generatedSettings?.textColor ?? activeTextColor,
+        generatedSettings?.textFontFamily ?? settings.textFontFamily,
       );
       downloadBlob(
         blob,
@@ -673,6 +786,7 @@ export function App() {
         settings.locale,
         activeBarcodeColor,
         activeTextColor,
+        generatedSettings?.textFontFamily ?? settings.textFontFamily,
       );
     } finally {
       setIsExporting(false);
@@ -751,6 +865,26 @@ export function App() {
       ...defaults,
       locale: settings.locale,
       generatorMode: settings.generatorMode,
+    });
+  }
+
+  function handleSheetSetupReset() {
+    const defaults = createDefaultSettings();
+    setQrColorDraft(defaults.qrColor);
+    setTextColorDraft(defaults.textColor);
+    updateSettings({
+      startNumber: defaults.startNumber,
+      endNumber: defaults.endNumber,
+      count: defaults.count,
+      prefix: defaults.prefix,
+      digits: defaults.digits,
+      numberingDirection: defaults.numberingDirection,
+      startPosition: defaults.startPosition,
+      qrColor: defaults.qrColor,
+      textColor: defaults.textColor,
+      textFontFamily: defaults.textFontFamily,
+      showTextPrefix: defaults.showTextPrefix,
+      showTextLeadingZeros: defaults.showTextLeadingZeros,
     });
   }
 
@@ -835,84 +969,92 @@ export function App() {
     <div class="app-shell">
       <div class="app-noise" />
       <header class="topbar">
-        <div class="topbar__brand">
-          <div class="brand-row">
-            <img
-              alt=""
-              aria-hidden="true"
-              class="brand-row__logo"
-              height="40"
-              src="/plasn-mark.svg"
-              width="40"
-            />
-            <h1>{t(settings.locale, "appTitle")}</h1>
-            <span class="topbar__sheet">{topbarStatus}</span>
+        <div class="topbar__top">
+          <div class="topbar__brand">
+            <div class="brand-row">
+              <img
+                alt=""
+                aria-hidden="true"
+                class="brand-row__logo"
+                height="40"
+                src="/plasn-mark.svg"
+                width="40"
+              />
+              <h1>{t(settings.locale, "appTitle")}</h1>
+              <p class="topbar__subtitle">
+                {settings.locale === "de"
+                  ? "Erzeugt druckbare ASN-Etiketten und Trennblätter für "
+                  : "Create printable ASN label sheets and separator pages for "}
+                <a
+                  href="https://docs.paperless-ngx.com/"
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  Paperless-ngx
+                </a>
+                .
+              </p>
+            </div>
           </div>
-          <p class="topbar__subtitle">
-            {settings.locale === "de"
-              ? "Erzeugt druckbare ASN-Etiketten und Trennblätter für "
-              : "Create printable ASN label sheets and separator pages for "}
-            <a
-              href="https://docs.paperless-ngx.com/"
-              rel="noreferrer"
-              target="_blank"
+          <div class="locale-switcher" aria-label={t(settings.locale, "fieldLanguage")}>
+            <button
+              class={`locale-switcher__button${
+                settings.locale === "de" ? " locale-switcher__button--active" : ""
+              }`}
+              onClick={() => updateSettings({ locale: "de" })}
+              type="button"
             >
-              Paperless-ngx
-            </a>
-            .
-          </p>
+              {t(settings.locale, "localeDe")}
+            </button>
+            <button
+              class={`locale-switcher__button${
+                settings.locale === "en" ? " locale-switcher__button--active" : ""
+              }`}
+              onClick={() => updateSettings({ locale: "en" })}
+              type="button"
+            >
+              {t(settings.locale, "localeEn")}
+            </button>
+          </div>
         </div>
-        <div class="locale-switcher" aria-label={t(settings.locale, "fieldLanguage")}>
+
+        <div class="mode-switcher mode-switcher--topbar" aria-label={t(settings.locale, "fieldMode")}>
           <button
-            class={`locale-switcher__button${
-              settings.locale === "de" ? " locale-switcher__button--active" : ""
+            class={`mode-switcher__button${
+              settings.generatorMode === "asn" ? " mode-switcher__button--active" : ""
             }`}
-            onClick={() => updateSettings({ locale: "de" })}
+            onClick={() => updateSettings({ generatorMode: "asn" })}
             type="button"
           >
-            {t(settings.locale, "localeDe")}
+            {t(settings.locale, "optionModeAsn")}
           </button>
           <button
-            class={`locale-switcher__button${
-              settings.locale === "en" ? " locale-switcher__button--active" : ""
+            class={`mode-switcher__button${
+              settings.generatorMode === "separator"
+                ? " mode-switcher__button--active"
+                : ""
             }`}
-            onClick={() => updateSettings({ locale: "en" })}
+            onClick={() => updateSettings({ generatorMode: "separator" })}
             type="button"
           >
-            {t(settings.locale, "localeEn")}
+            {t(settings.locale, "optionModeSeparator")}
+          </button>
+          <button
+            class="mode-switcher__button mode-switcher__button--aux"
+            onClick={() => setIsWorkflowHelpOpen(true)}
+            type="button"
+          >
+            {t(settings.locale, "buttonWorkflowHelp")}
+          </button>
+          <button
+            class="mode-switcher__button"
+            onClick={() => setIsPaperlessSetupOpen(true)}
+            type="button"
+          >
+            {t(settings.locale, "buttonPaperlessSetup")}
           </button>
         </div>
       </header>
-
-      <div class="mode-switcher" aria-label={t(settings.locale, "fieldMode")}>
-        <button
-          class={`mode-switcher__button${
-            settings.generatorMode === "asn" ? " mode-switcher__button--active" : ""
-          }`}
-          onClick={() => updateSettings({ generatorMode: "asn" })}
-          type="button"
-        >
-          {t(settings.locale, "optionModeAsn")}
-        </button>
-        <button
-          class={`mode-switcher__button${
-            settings.generatorMode === "separator"
-              ? " mode-switcher__button--active"
-              : ""
-          }`}
-          onClick={() => updateSettings({ generatorMode: "separator" })}
-          type="button"
-        >
-          {t(settings.locale, "optionModeSeparator")}
-        </button>
-        <button
-          class="mode-switcher__button mode-switcher__button--aux"
-          onClick={() => setIsWorkflowHelpOpen(true)}
-          type="button"
-        >
-          {t(settings.locale, "buttonWorkflowHelp")}
-        </button>
-      </div>
 
       <main class="layout-grid">
         <section class="control-column">
@@ -920,7 +1062,17 @@ export function App() {
             <>
           <div class="section-card">
             <div class="section-card__header">
-              <h3>{t(settings.locale, "sectionSheet")}</h3>
+              <div class="section-card__header-title">
+                <h3>{t(settings.locale, "sectionSheet")}</h3>
+                <button
+                  aria-label={t(settings.locale, "generatorHelpOpen")}
+                  class="info-button"
+                  onClick={() => setIsGeneratorHelpOpen(true)}
+                  type="button"
+                >
+                  ?
+                </button>
+              </div>
             </div>
             <div class="form-grid">
               <label class="field field--full">
@@ -1152,22 +1304,7 @@ export function App() {
             {settings.presetId === CUSTOM_PRESET_ID ? (
               <p class="field-hint">{t(settings.locale, "hintCustom")}</p>
             ) : null}
-          </div>
-
-          <div class="section-card">
-            <div class="section-card__header">
-              <div class="section-card__header-title">
-                <h3>{t(settings.locale, "sectionGenerator")}</h3>
-                <button
-                  aria-label={t(settings.locale, "generatorHelpOpen")}
-                  class="info-button"
-                  onClick={() => setIsGeneratorHelpOpen(true)}
-                  type="button"
-                >
-                  ?
-                </button>
-              </div>
-            </div>
+            <div class="sheet-setup__config">
             <div class="form-grid form-grid--generator">
               <label class="field">
                 <span>{t(settings.locale, "fieldStartNumber")}</span>
@@ -1215,6 +1352,18 @@ export function App() {
                   value={settings.count ?? ""}
                 />
               </label>
+              <label class="field field--narrow">
+                <span>{t(settings.locale, "fieldStartPosition")}</span>
+                <input
+                  onInput={(event) =>
+                    updateSettings({
+                      startPosition: (event.currentTarget as HTMLInputElement).value,
+                    })
+                  }
+                  type="text"
+                  value={settings.startPosition}
+                />
+              </label>
               <label class="field">
                 <span>{t(settings.locale, "fieldPrefix")}</span>
                 <input
@@ -1246,82 +1395,11 @@ export function App() {
                   value={settings.digits}
                 />
               </label>
-              <label class="field">
-                <span>{t(settings.locale, "fieldDirection")}</span>
-                <select
-                  onInput={(event) =>
-                    updateSettings({
-                      numberingDirection: (
-                        event.currentTarget as HTMLSelectElement
-                      ).value as GeneratorConfig["numberingDirection"],
-                    })
-                  }
-                  value={settings.numberingDirection}
-                >
-                  <option value="column">{t(settings.locale, "optionColumn")}</option>
-                  <option value="row">{t(settings.locale, "optionRow")}</option>
-                </select>
-              </label>
-              <label class="field">
-                <span>{t(settings.locale, "fieldStartPosition")}</span>
-                <input
-                  onInput={(event) =>
-                    updateSettings({
-                      startPosition: (event.currentTarget as HTMLInputElement).value,
-                    })
-                  }
-                  type="text"
-                  value={settings.startPosition}
-                />
-              </label>
-              <label class="field">
-                <span>{t(settings.locale, "fieldShowTextPrefix")}</span>
-                <button
-                  aria-pressed={settings.showTextPrefix}
-                  class={`toggle-row${settings.showTextPrefix ? " toggle-row--active" : ""}`}
-                  onClick={() =>
-                    updateSettings({ showTextPrefix: !settings.showTextPrefix })
-                  }
-                  type="button"
-                >
-                  <span class="toggle-row__status">
-                    {t(
-                      settings.locale,
-                      settings.showTextPrefix ? "toggleEnabled" : "toggleDisabled",
-                    )}
-                  </span>
-                  <span class="toggle-switch" aria-hidden="true">
-                    <span class="toggle-switch__thumb" />
-                  </span>
-                </button>
-              </label>
-              <label class="field">
-                <span>{t(settings.locale, "fieldShowLeadingZeros")}</span>
-                <button
-                  aria-pressed={settings.showTextLeadingZeros}
-                  class={`toggle-row${
-                    settings.showTextLeadingZeros ? " toggle-row--active" : ""
-                  }`}
-                  onClick={() =>
-                    updateSettings({
-                      showTextLeadingZeros: !settings.showTextLeadingZeros,
-                    })
-                  }
-                  type="button"
-                >
-                  <span class="toggle-row__status">
-                    {t(
-                      settings.locale,
-                      settings.showTextLeadingZeros
-                        ? "toggleEnabled"
-                        : "toggleDisabled",
-                    )}
-                  </span>
-                  <span class="toggle-switch" aria-hidden="true">
-                    <span class="toggle-switch__thumb" />
-                  </span>
-                </button>
-              </label>
+              <DirectionField
+                locale={settings.locale}
+                onChange={(numberingDirection) => updateSettings({ numberingDirection })}
+                value={settings.numberingDirection}
+              />
               <div class="color-fields field--full">
                 <ColorField
                   draft={qrColorDraft}
@@ -1337,7 +1415,74 @@ export function App() {
                   onDraftChange={setTextColorDraft}
                   value={settings.textColor}
                 />
+                <label class="field">
+                  <span>{t(settings.locale, "fieldTextFont")}</span>
+                  <select
+                    onInput={(event) =>
+                      updateSettings({
+                        textFontFamily: (
+                          event.currentTarget as HTMLSelectElement
+                        ).value as AppSettings["textFontFamily"],
+                      })
+                    }
+                    value={settings.textFontFamily}
+                  >
+                    {LABEL_TEXT_FONT_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
               </div>
+              <div class="sheet-setup__actions field--full">
+                <button
+                  aria-checked={settings.showTextPrefix}
+                  class={`toggle-row toggle-row--minimal sheet-setup__action${
+                    settings.showTextPrefix ? " toggle-row--active" : ""
+                  }`}
+                  onClick={() =>
+                    updateSettings({ showTextPrefix: !settings.showTextPrefix })
+                  }
+                  role="switch"
+                  type="button"
+                >
+                  <span class="toggle-row__label">
+                    {t(settings.locale, "fieldShowTextPrefix")}
+                  </span>
+                  <span class="toggle-switch" aria-hidden="true">
+                    <span class="toggle-switch__thumb" />
+                  </span>
+                </button>
+                <button
+                  aria-checked={settings.showTextLeadingZeros}
+                  class={`toggle-row toggle-row--minimal sheet-setup__action${
+                    settings.showTextLeadingZeros ? " toggle-row--active" : ""
+                  }`}
+                  onClick={() =>
+                    updateSettings({
+                      showTextLeadingZeros: !settings.showTextLeadingZeros,
+                    })
+                  }
+                  role="switch"
+                  type="button"
+                >
+                  <span class="toggle-row__label">
+                    {t(settings.locale, "fieldShowLeadingZeros")}
+                  </span>
+                  <span class="toggle-switch" aria-hidden="true">
+                    <span class="toggle-switch__thumb" />
+                  </span>
+                </button>
+                <button
+                  class="button button--text button--inline-reset sheet-setup__action sheet-setup__action--reset"
+                  onClick={handleSheetSetupReset}
+                  type="button"
+                >
+                  Reset
+                </button>
+              </div>
+            </div>
             </div>
           </div>
 
@@ -1681,11 +1826,7 @@ export function App() {
         </section>
 
         <aside class="preview-column">
-          <div class="section-card section-card--sticky">
-            <div class="section-card__header">
-              <h3>{t(settings.locale, "sectionPreview")}</h3>
-            </div>
-
+          <div class="section-card section-card--preview section-card--sticky">
             {layout?.warnings.length ? (
               <div class="warning-stack" role="status">
                 <h4>{t(settings.locale, "warningTitle")}</h4>
@@ -1698,111 +1839,80 @@ export function App() {
             ) : null}
 
             <PreviewPanel
+              actions={
+                <>
+                  <div class="button-row__group">
+                    {hasGeneratedExport ? (
+                      <>
+                        <button
+                          class="button button--primary"
+                          disabled={isExporting || !canExport}
+                          onClick={handlePdfDownload}
+                          type="button"
+                        >
+                          {t(settings.locale, "buttonPdf")}
+                        </button>
+                        <button
+                          class="button button--primary"
+                          disabled={isExporting || !canExport}
+                          onClick={handlePrint}
+                          type="button"
+                        >
+                          {t(settings.locale, "buttonPrint")}
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        class="button button--primary"
+                        disabled={!canGenerate}
+                        onClick={handleGenerateExport}
+                        type="button"
+                      >
+                        {t(settings.locale, "buttonGenerate")}
+                      </button>
+                    )}
+                  </div>
+                  <div class="button-row__group button-row__group--end">
+                    <button class="button button--text" onClick={handleReset} type="button">
+                      {t(settings.locale, "buttonReset")}
+                    </button>
+                    <button
+                      aria-pressed={isAutoGenerate}
+                      class={`output-toggle${isAutoGenerate ? " output-toggle--active" : ""}`}
+                      onClick={() => setIsAutoGenerate((current) => !current)}
+                      type="button"
+                    >
+                      <span class="output-toggle__label">
+                        {t(settings.locale, "buttonAutoGenerate")}
+                      </span>
+                      <span
+                        aria-hidden="true"
+                        class={`output-toggle__switch${
+                          isAutoGenerate ? " output-toggle__switch--active" : ""
+                        }`}
+                      >
+                        <span class="output-toggle__thumb" />
+                      </span>
+                    </button>
+                  </div>
+                </>
+              }
               layout={layout}
               locale={settings.locale}
               onPageChange={setPageIndex}
               pageIndex={Math.min(pageIndex, Math.max((layout?.pages.length ?? 1) - 1, 0))}
               qrColor={activeBarcodeColor}
               textColor={activeTextColor}
-            />
-
-              <div class="output-panel">
-              <div class="button-row">
-                {hasGeneratedExport ? (
-                  <>
-                    <button
-                      class="button button--primary"
-                      disabled={isExporting || !canExport}
-                      onClick={handlePdfDownload}
-                      type="button"
-                    >
-                      {t(settings.locale, "buttonPdf")}
-                    </button>
-                    <button
-                      class="button button--ghost"
-                      disabled={isExporting || !canExport}
-                      onClick={handlePrint}
-                      type="button"
-                    >
-                      {t(settings.locale, "buttonPrint")}
-                    </button>
-                  </>
-                ) : (
-                    <button
-                      class="button button--primary"
-                      disabled={!canGenerate}
-                      onClick={handleGenerateExport}
-                      type="button"
-                    >
-                    {t(settings.locale, "buttonGenerate")}
-                  </button>
-                )}
-                <button class="button button--text" onClick={handleReset} type="button">
-                    {t(settings.locale, "buttonReset")}
-                  </button>
-                <button
-                  aria-pressed={isAutoGenerate}
-                  class={`output-toggle${isAutoGenerate ? " output-toggle--active" : ""}`}
-                  onClick={() => setIsAutoGenerate((current) => !current)}
-                  type="button"
-                >
-                  <span class="output-toggle__label">
-                    {t(settings.locale, "buttonAutoGenerate")}
-                  </span>
-                  <span
-                    aria-hidden="true"
-                    class={`output-toggle__switch${
-                      isAutoGenerate ? " output-toggle__switch--active" : ""
-                    }`}
-                  >
-                    <span class="output-toggle__thumb" />
-                  </span>
-                </button>
-              </div>
-              <div class="source-panel">
-                <strong>{t(settings.locale, "outputPrintScaleTitle")}</strong>
-                <span>{t(settings.locale, "outputPrintScaleBody")}</span>
-              </div>
-              <div class="source-panel source-panel--setup">
-                <button
-                  aria-expanded={isPaperlessSetupOpen}
-                  class="accordion-trigger"
-                  onClick={() => setIsPaperlessSetupOpen((current) => !current)}
-                  type="button"
-                >
-                  <strong>{t(settings.locale, "paperlessSetupTitle")}</strong>
-                  <span aria-hidden="true" class="accordion-trigger__chevron">
-                    {isPaperlessSetupOpen ? "▴" : "▾"}
-                  </span>
-                </button>
-                {isPaperlessSetupOpen ? (
-                  <div class="accordion-content">
-                    <span>{paperlessSetupBody}</span>
-                    <div class="setup-block">
-                      <span class="setup-block__title">{paperlessRequiredTitle}</span>
-                      <pre class="setup-block__code">
-                        <code>{paperlessRequiredEnv}</code>
-                      </pre>
-                    </div>
-                    <div class="setup-block">
-                      <span class="setup-block__title">{paperlessOptionalTitle}</span>
-                      <pre class="setup-block__code">
-                        <code>{paperlessOptionalEnv}</code>
-                      </pre>
-                    </div>
-                    <a
-                      class="source-panel__link"
-                      href="https://docs.paperless-ngx.com/configuration/"
-                      rel="noreferrer"
-                      target="_blank"
-                    >
-                      {t(settings.locale, "paperlessSetupDocsLabel")}
-                    </a>
-                    <span>{t(settings.locale, "paperlessSetupScannerNote")}</span>
+              textFontFamily={generatedSettings?.textFontFamily ?? settings.textFontFamily}
+              footer={
+                <div class="output-panel">
+                  <div class="source-panel source-panel--plain">
+                    <strong>{t(settings.locale, "outputPrintScaleTitle")}</strong>
+                    <span>{t(settings.locale, "outputPrintScaleBody")}</span>
                   </div>
-                ) : null}
-              </div>
-            </div>
+                </div>
+              }
+            />
           </div>
         </aside>
       </main>
@@ -1906,6 +2016,58 @@ export function App() {
                 <strong>{t(settings.locale, "workflowHelpProfilesTitle")}</strong>
                 <p>{t(settings.locale, "workflowHelpProfilesBody")}</p>
                 <span class="modal-help-note">{t(settings.locale, "workflowHelpProfilesNote")}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {isPaperlessSetupOpen ? (
+        <div
+          aria-modal="true"
+          class="modal-backdrop"
+          onClick={() => setIsPaperlessSetupOpen(false)}
+          role="dialog"
+        >
+          <div
+            class="modal-card modal-card--workflow"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div class="modal-card__header">
+              <h3>{t(settings.locale, "paperlessSetupTitle")}</h3>
+              <button
+                aria-label={t(settings.locale, "modalClose")}
+                class="modal-close"
+                onClick={() => setIsPaperlessSetupOpen(false)}
+                type="button"
+              >
+                ×
+              </button>
+            </div>
+            <div class="modal-card__content">
+              <p>{paperlessSetupBody}</p>
+              <div class="modal-help-block">
+                <strong>{paperlessRequiredTitle}</strong>
+                <pre class="setup-block__code">
+                  <code>{paperlessRequiredEnv}</code>
+                </pre>
+              </div>
+              <div class="modal-help-block">
+                <strong>{paperlessOptionalTitle}</strong>
+                <pre class="setup-block__code">
+                  <code>{paperlessOptionalEnv}</code>
+                </pre>
+              </div>
+              <div class="modal-help-block">
+                <a
+                  class="source-panel__link"
+                  href="https://docs.paperless-ngx.com/configuration/"
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  {t(settings.locale, "paperlessSetupDocsLabel")}
+                </a>
+                <p>{t(settings.locale, "paperlessSetupScannerNote")}</p>
               </div>
             </div>
           </div>

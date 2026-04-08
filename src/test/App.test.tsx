@@ -63,9 +63,7 @@ describe("App", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /Separator sheets/i }));
     fireEvent.click(
-      screen.getByRole("button", {
-        name: /Paperless-ngx setup for barcode and ASN detection/i,
-      }),
+      screen.getByRole("button", { name: /Paperless-ngx setup/i }),
     );
 
     expect(screen.getByText(/PAPERLESS_CONSUMER_ENABLE_BARCODES=true/i)).toBeInTheDocument();
@@ -111,7 +109,7 @@ describe("App", () => {
     ).toBeInTheDocument();
 
     fireEvent.click(
-      screen.getByRole("button", { name: /Show prefix in text|Präfix im Text/i }),
+      screen.getByRole("switch", { name: /Show prefix|Präfix anzeigen/i }),
     );
 
     expect(
@@ -126,7 +124,7 @@ describe("App", () => {
       screen.getByRole("button", { name: /Auto-generate|Auto-Generieren/i }),
     );
     fireEvent.click(
-      screen.getByRole("button", { name: /Show prefix in text|Präfix im Text/i }),
+      screen.getByRole("switch", { name: /Show prefix|Präfix anzeigen/i }),
     );
 
     expect(

@@ -73,6 +73,7 @@ export function createDefaultSettings(): AppSettings {
     digits: 5,
     qrColor: "#000000",
     textColor: "#000000",
+    textFontFamily: "helvetica",
     showTextPrefix: true,
     showTextLeadingZeros: true,
     numberingDirection: "column",
@@ -125,6 +126,12 @@ export function loadSettings(): AppSettings {
       ),
       qrColor: normalizeHexColor(parsed.qrColor, fallbackColor),
       textColor: normalizeHexColor(parsed.textColor, fallbackColor),
+      textFontFamily:
+        parsed.textFontFamily === "source_code_pro" ||
+        parsed.textFontFamily === "jetbrains_mono" ||
+        parsed.textFontFamily === "helvetica"
+          ? parsed.textFontFamily
+          : createDefaultSettings().textFontFamily,
       separatorBarcodeColor: normalizeHexColor(
         parsed.separatorBarcodeColor,
         createDefaultSettings().separatorBarcodeColor,

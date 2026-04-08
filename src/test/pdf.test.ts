@@ -14,6 +14,7 @@ describe("renderPdf", () => {
       digits: 6,
       qrColor: "#0000FF",
       textColor: "#B91C1C",
+      textFontFamily: "helvetica",
       showTextPrefix: true,
       showTextLeadingZeros: true,
       numberingDirection: "column",
@@ -27,7 +28,13 @@ describe("renderPdf", () => {
       config,
       createDefaultCalibrationProfile(config.presetId),
     );
-    const blob = await renderPdf(layout, "en", config.qrColor, config.textColor);
+    const blob = await renderPdf(
+      layout,
+      "en",
+      config.qrColor,
+      config.textColor,
+      config.textFontFamily,
+    );
 
     expect(blob.size).toBeGreaterThan(500);
     expect(blob.type).toBe("application/pdf");

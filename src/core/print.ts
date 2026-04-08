@@ -1,7 +1,13 @@
 import { getRunTotalWidth } from "./code128";
 import { t } from "./i18n";
+import { getLabelTextCssFamily, getLabelTextPrintImportCss } from "./labelFonts";
 import { getQrDataUrl } from "./qr";
-import type { GeneratedDocumentLayout, Locale, SeparatorPageLayout } from "./types";
+import type {
+  GeneratedDocumentLayout,
+  LabelTextFontFamily,
+  Locale,
+  SeparatorPageLayout,
+} from "./types";
 
 function escapeHtml(value: string): string {
   return value
@@ -14,6 +20,7 @@ function escapeHtml(value: string): string {
 function buildPrintDocument(
   layout: GeneratedDocumentLayout,
   locale: Locale,
+  textFontFamily: LabelTextFontFamily,
   pageMarkup: string,
 ): string {
   return `
@@ -23,6 +30,7 @@ function buildPrintDocument(
         <meta charset="utf-8" />
         <title>${escapeHtml(t(locale, "printWindowTitle"))}</title>
         <style>
+          ${getLabelTextPrintImportCss()}
           @page {
             size: ${layout.pages[0]?.pageWidthMm ?? 210}mm ${layout.pages[0]?.pageHeightMm ?? 297}mm;
             margin: 0;
@@ -58,11 +66,17 @@ function buildPrintDocument(
           }
           .label-text {
             display: flex;
+            flex-direction: column;
+            justify-content: center;
             align-items: center;
+            text-align: center;
             white-space: nowrap;
             color: black;
-            line-height: 1;
-            transform-origin: left center;
+            transform-origin: center center;
+          }
+          .label-text__line {
+            display: block;
+            width: 100%;
           }
           .separator-sheet {
             position: relative;
@@ -151,6 +165,7 @@ export async function printLayout(
   locale: Locale,
   qrColor: string,
   textColor: string,
+  textFontFamily: LabelTextFontFamily,
 ): Promise<boolean> {
   try {
     const pageMarkup =
@@ -187,8 +202,13 @@ export async function printLayout(
                     : ""
                 }
                 <img alt="" src="${qr}" style="left:${item.qrXmm - item.xMm}mm;top:${item.qrYmm - item.yMm}mm;width:${item.qrSizeMm}mm;height:${item.qrSizeMm}mm;" />
-                <div class="label-text" style="left:${item.textXmm - item.xMm + item.textOffsetMm}mm;top:${item.textYmm - item.yMm}mm;width:${item.textWidthMm}mm;height:${item.textHeightMm}mm;font-size:${item.textSizeMm}mm;color:${escapeHtml(textColor)};transform:scaleX(${item.textScaleX});">
-                  ${escapeHtml(item.displayText)}
+                <div class="label-text" style="left:${item.textXmm - item.xMm}mm;top:${item.textYmm - item.yMm}mm;width:${item.textWidthMm}mm;height:${item.textHeightMm}mm;font-size:${item.textSizeMm}mm;line-height:${item.textLineHeightMm}mm;color:${escapeHtml(textColor)};font-family:${escapeHtml(getLabelTextCssFamily(textFontFamily))};transform:scaleX(${item.textScaleX});">
+                  ${item.textLines
+                    .map(
+                      (line) =>
+                        `<span class="label-text__line">${escapeHtml(line)}</span>`,
+                    )
+                    .join("")}
                 </div>
               </div>
             `;
@@ -218,7 +238,7 @@ export async function printLayout(
 
     win.onafterprint = cleanup;
     doc.open();
-    doc.write(buildPrintDocument(layout, locale, pageMarkup.join("")));
+    doc.write(buildPrintDocument(layout, locale, textFontFamily, pageMarkup.join("")));
     doc.close();
 
     const runPrint = () => {

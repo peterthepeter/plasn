@@ -111,23 +111,31 @@ function getSlotCoordinates(
   };
 }
 
-function fitTextSizeMm(
-  text: string,
+function fitTextBlockSizeMm(
+  lines: string[],
   textWidthMm: number,
   textHeightMm: number,
   preset: LabelPreset,
 ): {
   sizeMm: number;
+  lineHeightMm: number;
   textScaleX: number;
   textOffsetMm: number;
   isTightFit: boolean;
 } {
-  const widthFactor = text.length <= 7 ? 0.63 : 0.69;
-  const widthBased = textWidthMm / Math.max(text.length * widthFactor, 1);
-  const heightBased = textHeightMm * 0.64;
+  const widestLine = lines.reduce(
+    (widest, line) => (line.length > widest.length ? line : widest),
+    "",
+  );
+  const widthFactor = widestLine.length <= 7 ? 0.63 : 0.69;
+  const lineCount = Math.max(lines.length, 1);
+  const widthBased = textWidthMm / Math.max(widestLine.length * widthFactor, 1);
+  const heightFactor = lineCount === 1 ? 0.64 : 1 / (lineCount * 0.92);
+  const heightBased = textHeightMm * heightFactor;
   const candidate = Math.min(widthBased, heightBased, preset.maxTextSizeMm);
   const sizeMm = Math.max(1.2, Math.min(candidate, preset.maxTextSizeMm));
-  const requiredWidth = sizeMm * Math.max(text.length * widthFactor, 1);
+  const lineHeightMm = sizeMm * (lineCount === 1 ? 1 : 0.92);
+  const requiredWidth = sizeMm * Math.max(widestLine.length * widthFactor, 1);
   const textScaleX =
     requiredWidth <= textWidthMm ? 1 : Math.max(0.76, textWidthMm / requiredWidth);
   const renderedWidth = requiredWidth * textScaleX;
@@ -136,6 +144,7 @@ function fitTextSizeMm(
     freeSpace > 0.7 ? Math.min(freeSpace / 2, textWidthMm * 0.34) : 0;
   return {
     sizeMm,
+    lineHeightMm,
     textScaleX,
     textOffsetMm,
     isTightFit:
@@ -166,17 +175,18 @@ function buildEncodedText(prefix: string, digits: number, value: number): string
   return `${prefix}${String(value).padStart(digits, "0")}`;
 }
 
-function buildDisplayText(
+function buildDisplayLines(
   prefix: string,
   digits: number,
   value: number,
   showTextPrefix: boolean,
   showTextLeadingZeros: boolean,
-): string {
+): string[] {
   const numberPart = showTextLeadingZeros
     ? String(value).padStart(digits, "0")
     : String(value);
-  return `${showTextPrefix ? prefix : ""}${numberPart}`;
+  const trimmedPrefix = prefix.trim();
+  return showTextPrefix && trimmedPrefix ? [trimmedPrefix, numberPart] : [numberPart];
 }
 
 export function generateLayout(
@@ -229,13 +239,14 @@ export function generateLayout(
       calibrationProfile.offsetYMm;
     const value = config.startNumber + sequence;
     const encodedText = buildEncodedText(config.prefix, config.digits, value);
-    const displayText = buildDisplayText(
+    const textLines = buildDisplayLines(
       config.prefix,
       config.digits,
       value,
       config.showTextPrefix,
       config.showTextLeadingZeros,
     );
+    const displayText = textLines.join(" ");
     const qrSizeMm = Math.max(
       4,
       Math.min(
@@ -249,8 +260,8 @@ export function generateLayout(
     const textWidthMm =
       preset.labelWidthMm - preset.innerPaddingMm * 2 - qrSizeMm - preset.textGapMm;
     const textHeightMm = preset.labelHeightMm - preset.innerPaddingMm * 2;
-    const { sizeMm, textScaleX, textOffsetMm, isTightFit } = fitTextSizeMm(
-      displayText,
+    const { sizeMm, lineHeightMm, textScaleX, textOffsetMm, isTightFit } = fitTextBlockSizeMm(
+      textLines,
       textWidthMm,
       textHeightMm,
       preset,
@@ -266,6 +277,7 @@ export function generateLayout(
       value,
       encodedText,
       displayText,
+      textLines,
       pageIndex,
       slotIndex: pageSlotIndex,
       row,
@@ -283,6 +295,7 @@ export function generateLayout(
       textWidthMm,
       textHeightMm,
       textSizeMm: sizeMm,
+      textLineHeightMm: lineHeightMm,
       textScaleX,
       isTightFit,
     };

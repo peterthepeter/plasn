@@ -1,6 +1,7 @@
 export type Locale = "de" | "en";
 export type GeneratorMode = "asn" | "separator";
 export type SeparatorPaperSize = "a4" | "letter";
+export type LabelTextFontFamily = "helvetica" | "source_code_pro" | "jetbrains_mono";
 
 export type NumberingDirection = "column" | "row";
 
@@ -49,6 +50,7 @@ export interface GeneratorConfig {
   digits: number;
   qrColor: string;
   textColor: string;
+  textFontFamily: LabelTextFontFamily;
   showTextPrefix: boolean;
   showTextLeadingZeros: boolean;
   numberingDirection: NumberingDirection;
@@ -87,6 +89,7 @@ export interface LabelItem {
   value: number;
   encodedText: string;
   displayText: string;
+  textLines: string[];
   pageIndex: number;
   slotIndex: number;
   row: number;
@@ -104,6 +107,7 @@ export interface LabelItem {
   textWidthMm: number;
   textHeightMm: number;
   textSizeMm: number;
+  textLineHeightMm: number;
   textScaleX: number;
   isTightFit: boolean;
 }

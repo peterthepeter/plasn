@@ -2,9 +2,11 @@ import { PDFDocument, PDFPage, PDFFont, StandardFonts, rgb } from "pdf-lib";
 import { getRunTotalWidth } from "./code128";
 import { hexToRgb } from "./color";
 import { t } from "./i18n";
+import { getPdfLabelFontKind } from "./labelFonts";
 import { getQrDataUrl } from "./qr";
 import type {
   GeneratedDocumentLayout,
+  LabelTextFontFamily,
   Locale,
   SeparatorPageLayout,
   SeparatorTextLayout,
@@ -138,6 +140,7 @@ export async function renderPdf(
   locale: Locale,
   qrColor: string,
   textColorHex: string,
+  textFontFamily: LabelTextFontFamily,
 ): Promise<Blob> {
   const pdf = await PDFDocument.create();
   pdf.setTitle(
@@ -146,8 +149,13 @@ export async function renderPdf(
       : `${t(locale, "appTitle")} ASN Labels`,
   );
   pdf.setCreator("Plasn");
-  const font = await pdf.embedFont(StandardFonts.Helvetica);
-  const boldFont = await pdf.embedFont(StandardFonts.HelveticaBold);
+  const fontKind = getPdfLabelFontKind(textFontFamily);
+  const font = await pdf.embedFont(
+    fontKind === "courier" ? StandardFonts.Courier : StandardFonts.Helvetica,
+  );
+  const boldFont = await pdf.embedFont(
+    fontKind === "courier" ? StandardFonts.CourierBold : StandardFonts.HelveticaBold,
+  );
   const textColor = hexToRgb(textColorHex);
 
   if (layout.kind === "separator") {
@@ -165,9 +173,13 @@ export async function renderPdf(
       const qrY = mm(pageLayout.pageHeightMm - item.qrYmm - item.qrSizeMm);
       const qrSize = mm(item.qrSizeMm);
       const fontSize = mm(item.textSizeMm);
-      const textY =
-        mm(pageLayout.pageHeightMm - item.textYmm - item.textHeightMm / 2) -
-        fontSize * 0.35;
+      const lineHeight = mm(item.textLineHeightMm);
+      const blockHeight = fontSize + lineHeight * Math.max(item.textLines.length - 1, 0);
+      const textTop = mm(pageLayout.pageHeightMm - item.textYmm);
+      const textBoxX = mm(item.textXmm);
+      const textBoxWidth = mm(item.textWidthMm);
+      const scaledFontSize = fontSize * item.textScaleX;
+      let textY = textTop - (mm(item.textHeightMm) - blockHeight) / 2 - fontSize;
 
       if (layout.showBorders) {
         page.drawRectangle({
@@ -193,13 +205,17 @@ export async function renderPdf(
         height: qrSize,
       });
 
-      page.drawText(item.displayText, {
-        x: mm(item.textXmm + item.textOffsetMm),
-        y: textY,
-        size: fontSize * item.textScaleX,
-        font,
-        color: rgb(textColor.r / 255, textColor.g / 255, textColor.b / 255),
-      });
+      for (const line of item.textLines) {
+        const lineWidth = font.widthOfTextAtSize(line, scaledFontSize);
+        page.drawText(line, {
+          x: textBoxX + Math.max(0, (textBoxWidth - lineWidth) / 2),
+          y: textY,
+          size: scaledFontSize,
+          font,
+          color: rgb(textColor.r / 255, textColor.g / 255, textColor.b / 255),
+        });
+        textY -= lineHeight;
+      }
     }
     }
   }
