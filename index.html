@@ -14,8 +14,10 @@
       name="keywords"
       content="Paperless-ngx, ASN labels, ASN QR code, barcode separator sheets, document splitting, label calibration, PDF generator"
     />
+    <meta name="theme-color" content="#141726" />
     <link rel="canonical" href="https://plasn.getathome.dedyn.io/" />
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Plasn" />
     <meta property="og:title" content="Plasn | Paperless-ngx ASN Labels and Separator Sheets" />
     <meta
       property="og:description"
@@ -23,13 +25,36 @@
     />
     <meta property="og:url" content="https://plasn.getathome.dedyn.io/" />
     <meta property="og:image" content="https://plasn.getathome.dedyn.io/plasn-mark-256.png" />
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Plasn | Paperless-ngx ASN Labels and Separator Sheets" />
     <meta
       name="twitter:description"
       content="Generate ASN labels, separator sheets, and calibration PDFs for Paperless-ngx."
     />
     <meta name="twitter:image" content="https://plasn.getathome.dedyn.io/plasn-mark-256.png" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Plasn",
+        "url": "https://plasn.getathome.dedyn.io/",
+        "description": "Browser-based generator for Paperless-ngx ASN QR label sheets, barcode separator pages, and print calibration PDFs.",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Any",
+        "inLanguage": ["en", "de"],
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "featureList": [
+          "ASN QR label sheet generator for Paperless-ngx",
+          "Barcode separator page generator",
+          "Print calibration and overlay test sheets",
+          "Browser-based workflow with local settings"
+        ]
+      }
+    </script>
     <title>Plasn | Paperless-ngx ASN Labels and Separator Sheets</title>
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/svg+xml" href="/plasn-mark.svg" />
@@ -46,5 +71,25 @@
   </head>
   <body>
     <div id="app"></div>
+    <noscript>
+      <main>
+        <h1>Plasn</h1>
+        <p>
+          Plasn is a browser-based generator for Paperless-ngx ASN QR label sheets,
+          barcode separator pages, and print calibration PDFs.
+        </p>
+        <p>
+          Use it to create printable Archive Serial Number labels, generate separator
+          sheets for batch scanning workflows, and fine-tune label alignment before
+          printing on real stock.
+        </p>
+        <p>
+          The application runs in the browser and supports bilingual English and German
+          guidance, repeatable sheet presets, and calibration helpers for Paperless-ngx
+          label workflows.
+        </p>
+        <p>JavaScript is required to use the interactive generator.</p>
+      </main>
+    </noscript>
   </body>
 </html>
