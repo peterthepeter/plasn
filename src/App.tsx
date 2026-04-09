@@ -337,6 +337,131 @@ interface DirectionFieldProps {
   onChange: (value: GeneratorConfig["numberingDirection"]) => void;
 }
 
+interface GeneratedPreviewState {
+  profile: CalibrationProfile;
+  settings: AppSettings;
+}
+
+interface IconProps {
+  class?: string;
+}
+
+function GlobeIcon({ class: className }: IconProps) {
+  return (
+    <svg
+      aria-hidden="true"
+      class={className}
+      fill="none"
+      viewBox="0 0 20 20"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <circle cx="10" cy="10" r="7.1" stroke="currentColor" stroke-width="1.6" />
+      <path
+        d="M2.9 10h14.2M10 2.9c1.8 2 2.8 4.5 2.8 7.1 0 2.6-1 5.1-2.8 7.1M10 2.9C8.2 4.9 7.2 7.4 7.2 10c0 2.6 1 5.1 2.8 7.1"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="1.6"
+      />
+    </svg>
+  );
+}
+
+function DownloadIcon({ class: className }: IconProps) {
+  return (
+    <svg
+      aria-hidden="true"
+      class={className}
+      fill="none"
+      viewBox="0 0 20 20"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M10 4.25v7.5m0 0 3-3m-3 3-3-3M4.5 14.75v.75c0 .41.34.75.75.75h9.5c.41 0 .75-.34.75-.75v-.75"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="1.8"
+      />
+    </svg>
+  );
+}
+
+function PrintIcon({ class: className }: IconProps) {
+  return (
+    <svg
+      aria-hidden="true"
+      class={className}
+      fill="none"
+      viewBox="0 0 20 20"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M6.25 7V4.75c0-.41.34-.75.75-.75h6c.41 0 .75.34.75.75V7m-7.5 5.5h7.5m-7.5 2.5h7.5m-8.25 1h9a.75.75 0 0 0 .75-.75v-3.5H5.5v3.5c0 .41.34.75.75.75ZM5 7h10c.69 0 1.25.56 1.25 1.25v2.5c0 .69-.56 1.25-1.25 1.25H5c-.69 0-1.25-.56-1.25-1.25v-2.5C3.75 7.56 4.31 7 5 7Z"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="1.6"
+      />
+      <circle cx="14.1" cy="9.45" r=".8" fill="currentColor" />
+    </svg>
+  );
+}
+
+function AsnLabelIcon({ class: className }: IconProps) {
+  return (
+    <svg
+      aria-hidden="true"
+      class={className}
+      fill="none"
+      viewBox="0 0 20 20"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <rect x="3.25" y="3.25" width="13.5" height="13.5" rx="3" stroke="currentColor" stroke-width="1.5" />
+      <rect x="5.3" y="5.3" width="3.2" height="3.2" rx=".5" fill="currentColor" />
+      <rect x="11.5" y="5.3" width="1.6" height="1.6" rx=".3" fill="currentColor" />
+      <rect x="13.9" y="5.3" width="1.6" height="3.2" rx=".3" fill="currentColor" />
+      <rect x="5.3" y="11.5" width="1.6" height="1.6" rx=".3" fill="currentColor" />
+      <rect x="7.7" y="11.5" width="3.2" height="3.2" rx=".4" fill="currentColor" />
+      <rect x="12.3" y="10.7" width="3.2" height="1.6" rx=".3" fill="currentColor" />
+      <rect x="12.3" y="13.1" width="1.6" height="1.6" rx=".3" fill="currentColor" />
+      <rect x="14.7" y="13.1" width=".8" height="1.6" rx=".2" fill="currentColor" />
+    </svg>
+  );
+}
+
+function SeparatorSheetIcon({ class: className }: IconProps) {
+  return (
+    <svg
+      aria-hidden="true"
+      class={className}
+      fill="none"
+      viewBox="0 0 20 20"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M6.1 3.5h5.9l2.8 2.8v9.2a1 1 0 0 1-1 1H6.1a1 1 0 0 1-1-1v-11a1 1 0 0 1 1-1Z"
+        stroke="currentColor"
+        stroke-linejoin="round"
+        stroke-width="1.5"
+      />
+      <path
+        d="M12 3.5v2.2c0 .44.36.8.8.8H15"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="1.5"
+      />
+      <path
+        d="M7.4 9.2h5.2M7.4 11.7h5.2M7.4 14.2h3.3"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-width="1.5"
+      />
+    </svg>
+  );
+}
+
 type NumberInputProps = Omit<JSX.InputHTMLAttributes<HTMLInputElement>, "type">;
 
 function NumberInput(props: NumberInputProps) {
@@ -516,21 +641,26 @@ export function App() {
   const [pageIndex, setPageIndex] = useState(0);
   const [isExporting, setIsExporting] = useState(false);
   const [isAutoGenerate, setIsAutoGenerate] = useState(false);
-  const [generatedSettings, setGeneratedSettings] = useState<AppSettings | null>(null);
-  const [generatedProfile, setGeneratedProfile] = useState<CalibrationProfile | null>(
-    null,
-  );
+  const [generatedByMode, setGeneratedByMode] = useState<{
+    asn: GeneratedPreviewState | null;
+    separator: GeneratedPreviewState | null;
+  }>({
+    asn: null,
+    separator: null,
+  });
   const [isWorkflowHelpOpen, setIsWorkflowHelpOpen] = useState(false);
   const [isGeneratorHelpOpen, setIsGeneratorHelpOpen] = useState(false);
   const [isCalibrationHelpOpen, setIsCalibrationHelpOpen] = useState(false);
   const [isProfileActionsOpen, setIsProfileActionsOpen] = useState(false);
   const [isPaperlessSetupOpen, setIsPaperlessSetupOpen] = useState(false);
-  const [isCalibrationInfoOpen, setIsCalibrationInfoOpen] = useState(false);
   const [isOverlayInfoOpen, setIsOverlayInfoOpen] = useState(false);
   const [profileTransferNotice, setProfileTransferNotice] = useState<{
     tone: "success" | "error";
     message: string;
   } | null>(null);
+  const nextLocale = settings.locale === "de" ? "en" : "de";
+  const localeSwitchLabel =
+    settings.locale === "de" ? "Switch to English" : "Zu Deutsch wechseln";
   const profileImportRef = useRef<HTMLInputElement | null>(null);
   const profileActionsRef = useRef<HTMLDivElement | null>(null);
 
@@ -539,6 +669,9 @@ export function App() {
     profiles.find((profile) => profile.id === settings.calibrationProfileId) ??
     profiles[0] ??
     createDefaultCalibrationProfile(settings.presetId);
+  const generatedPreview = generatedByMode[settings.generatorMode];
+  const generatedSettings = generatedPreview?.settings ?? null;
+  const generatedProfile = generatedPreview?.profile ?? null;
   const layout: GeneratedDocumentLayout | null =
     generatedSettings && generatedProfile
       ? generatedSettings.generatorMode === "separator"
@@ -725,8 +858,13 @@ export function App() {
 
     const settingsSnapshot: AppSettings = structuredClone(settings);
     const profileSnapshot: CalibrationProfile = structuredClone(selectedProfile);
-    setGeneratedSettings(settingsSnapshot);
-    setGeneratedProfile(profileSnapshot);
+    setGeneratedByMode((current) => ({
+      ...current,
+      [settingsSnapshot.generatorMode]: {
+        settings: settingsSnapshot,
+        profile: profileSnapshot,
+      },
+    }));
   }, [isAutoGenerate, liveSettingsKey]);
 
   function commitQrColor(rawValue: string) {
@@ -864,8 +1002,13 @@ export function App() {
   async function handleGenerateExport() {
     const settingsSnapshot: AppSettings = structuredClone(settings);
     const profileSnapshot: CalibrationProfile = structuredClone(selectedProfile);
-    setGeneratedSettings(settingsSnapshot);
-    setGeneratedProfile(profileSnapshot);
+    setGeneratedByMode((current) => ({
+      ...current,
+      [settingsSnapshot.generatorMode]: {
+        settings: settingsSnapshot,
+        profile: profileSnapshot,
+      },
+    }));
   }
 
   function handleNewProfile() {
@@ -1066,22 +1209,13 @@ export function App() {
           </div>
           <div class="locale-switcher" aria-label={t(settings.locale, "fieldLanguage")}>
             <button
-              class={`locale-switcher__button${
-                settings.locale === "de" ? " locale-switcher__button--active" : ""
-              }`}
-              onClick={() => updateSettings({ locale: "de" })}
+              aria-label={localeSwitchLabel}
+              class="locale-switcher__button locale-switcher__button--icon locale-switcher__button--active"
+              onClick={() => updateSettings({ locale: nextLocale })}
+              title={localeSwitchLabel}
               type="button"
             >
-              {t(settings.locale, "localeDe")}
-            </button>
-            <button
-              class={`locale-switcher__button${
-                settings.locale === "en" ? " locale-switcher__button--active" : ""
-              }`}
-              onClick={() => updateSettings({ locale: "en" })}
-              type="button"
-            >
-              {t(settings.locale, "localeEn")}
+              <GlobeIcon class="locale-switcher__icon" />
             </button>
           </div>
         </div>
@@ -1094,6 +1228,7 @@ export function App() {
             onClick={() => updateSettings({ generatorMode: "asn" })}
             type="button"
           >
+            <AsnLabelIcon class="mode-switcher__icon mode-switcher__icon--asn" />
             {t(settings.locale, "optionModeAsn")}
           </button>
           <button
@@ -1105,22 +1240,25 @@ export function App() {
             onClick={() => updateSettings({ generatorMode: "separator" })}
             type="button"
           >
+            <SeparatorSheetIcon class="mode-switcher__icon" />
             {t(settings.locale, "optionModeSeparator")}
           </button>
-          <button
-            class="mode-switcher__button mode-switcher__button--aux"
-            onClick={() => setIsWorkflowHelpOpen(true)}
-            type="button"
-          >
-            {t(settings.locale, "buttonWorkflowHelp")}
-          </button>
-          <button
-            class="mode-switcher__button"
-            onClick={() => setIsPaperlessSetupOpen(true)}
-            type="button"
-          >
-            {t(settings.locale, "buttonPaperlessSetup")}
-          </button>
+          <div class="mode-switcher__aux-group">
+            <button
+              class="mode-switcher__button"
+              onClick={() => setIsWorkflowHelpOpen(true)}
+              type="button"
+            >
+              {t(settings.locale, "buttonWorkflowHelp")}
+            </button>
+            <button
+              class="mode-switcher__button"
+              onClick={() => setIsPaperlessSetupOpen(true)}
+              type="button"
+            >
+              {t(settings.locale, "buttonPaperlessSetup")}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -1360,7 +1498,7 @@ export function App() {
               <p class="field-hint">{t(settings.locale, "hintCustom")}</p>
             ) : null}
             <div class="sheet-setup__config">
-            <div class="form-grid form-grid--generator">
+            <div class="sheet-setup__row sheet-setup__row--numbers">
               <label class="field">
                 <span>{t(settings.locale, "fieldStartNumber")}</span>
                 <NumberInput
@@ -1416,6 +1554,8 @@ export function App() {
                   value={settings.startPosition}
                 />
               </label>
+            </div>
+            <div class="sheet-setup__row sheet-setup__row--details">
               <label class="field">
                 <span>{t(settings.locale, "fieldPrefix")}</span>
                 <input
@@ -1451,7 +1591,8 @@ export function App() {
                 onChange={(numberingDirection) => updateSettings({ numberingDirection })}
                 value={settings.numberingDirection}
               />
-              <div class="color-fields field--full">
+            </div>
+            <div class="sheet-setup__row sheet-setup__row--appearance">
                 <ColorField
                   draft={qrColorDraft}
                   label={t(settings.locale, "fieldQrColor")}
@@ -1485,8 +1626,8 @@ export function App() {
                     ))}
                   </select>
                 </label>
-              </div>
-              <div class="sheet-setup__actions field--full">
+            </div>
+              <div class="sheet-setup__actions">
                 <button
                   aria-checked={settings.showTextPrefix}
                   class={`toggle-row toggle-row--minimal sheet-setup__action${
@@ -1534,7 +1675,6 @@ export function App() {
                 </button>
               </div>
             </div>
-            </div>
           </div>
 
           <div class="section-card">
@@ -1550,31 +1690,6 @@ export function App() {
                   ?
                 </button>
               </div>
-            </div>
-            <div class="section-card__meta">
-              <strong>
-                {t(settings.locale, "calibrationForPreset", {
-                  preset: `${preset.manufacturer} ${preset.name}`,
-                })}
-              </strong>
-              <button
-                aria-expanded={isCalibrationInfoOpen}
-                class="accordion-trigger accordion-trigger--inline"
-                onClick={() => setIsCalibrationInfoOpen((current) => !current)}
-                type="button"
-              >
-                <span>{t(settings.locale, "calibrationInfoToggle")}</span>
-                <span aria-hidden="true" class="accordion-trigger__chevron">
-                  {isCalibrationInfoOpen ? "▴" : "▾"}
-                </span>
-              </button>
-              {isCalibrationInfoOpen ? (
-                <div class="accordion-content">
-                  <span>{t(settings.locale, "calibrationHintScope")}</span>
-                  <span>{t(settings.locale, "calibrationStorageNote")}</span>
-                  <span>{t(settings.locale, "hintCalibration")}</span>
-                </div>
-              ) : null}
             </div>
             <div class="form-grid">
               <label class="field">
@@ -1892,19 +2007,21 @@ export function App() {
                     {hasGeneratedExport ? (
                       <>
                         <button
-                          class="button button--primary"
+                          class="button button--primary button--with-icon"
                           disabled={isExporting || !canExport}
                           onClick={handlePdfDownload}
                           type="button"
                         >
+                          <DownloadIcon class="button__icon" />
                           {t(settings.locale, "buttonPdf")}
                         </button>
                         <button
-                          class="button button--primary"
+                          class="button button--primary button--with-icon"
                           disabled={isExporting || !canExport}
                           onClick={handlePrint}
                           type="button"
                         >
+                          <PrintIcon class="button__icon" />
                           {t(settings.locale, "buttonPrint")}
                         </button>
                       </>
@@ -1920,7 +2037,11 @@ export function App() {
                     )}
                   </div>
                   <div class="button-row__group button-row__group--end">
-                    <button class="button button--text" onClick={handleReset} type="button">
+                    <button
+                      class="button button--text"
+                      onClick={handleReset}
+                      type="button"
+                    >
                       {t(settings.locale, "buttonReset")}
                     </button>
                     <button
@@ -1989,6 +2110,11 @@ export function App() {
             <div class="modal-card__content">
               <p>{t(settings.locale, "calibrationHelpIntro")}</p>
               <div class="modal-help-block">
+                <strong>{t(settings.locale, "calibrationHelpProfilesTitle")}</strong>
+                <p>{t(settings.locale, "calibrationHintScope")}</p>
+                <span class="modal-help-note">{t(settings.locale, "calibrationStorageNote")}</span>
+              </div>
+              <div class="modal-help-block">
                 <strong>{t(settings.locale, "calibrationHelpOffsetTitle")}</strong>
                 <p>{t(settings.locale, "calibrationHelpOffsetBody")}</p>
               </div>
@@ -1999,6 +2125,7 @@ export function App() {
               <div class="modal-help-block">
                 <strong>{t(settings.locale, "calibrationHelpExampleTitle")}</strong>
                 <p>{t(settings.locale, "calibrationHelpExampleBody")}</p>
+                <span class="modal-help-note">{t(settings.locale, "hintCalibration")}</span>
               </div>
             </div>
           </div>

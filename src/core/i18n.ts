@@ -81,6 +81,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       "Profiles are stored per preset and can be exported as a backup or for another browser.",
     calibrationHelpIntro:
       "Use calibration only when the print does not land exactly on the sheet.",
+    calibrationHelpProfilesTitle: "Profiles and storage",
     calibrationHelpOffsetTitle: "Offset X/Y",
     calibrationHelpOffsetBody:
       "Moves the whole print area left, right, up, or down. Use this when every label is shifted by roughly the same amount.",
@@ -316,6 +317,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       "Profile werden pro Preset gespeichert und lassen sich als Backup oder für einen anderen Browser exportieren.",
     calibrationHelpIntro:
       "Nutze die Kalibrierung nur dann, wenn der Druck nicht exakt auf dem Bogen landet.",
+    calibrationHelpProfilesTitle: "Profile und Speicherung",
     calibrationHelpOffsetTitle: "Offset X/Y",
     calibrationHelpOffsetBody:
       "Verschiebt das komplette Druckbild nach links, rechts, oben oder unten. Das nutzt du, wenn alle Etiketten ungefähr gleich falsch sitzen.",
