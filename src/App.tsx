@@ -1,18 +1,29 @@
-import type { JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
+import { CalibrationPanel } from "./components/CalibrationPanel";
+import { ColorField } from "./components/ColorField";
+import { DirectionField } from "./components/DirectionField";
+import { NumberInput } from "./components/NumberInput";
 import { PreviewPanel } from "./components/PreviewPanel";
+import { PreviewActions } from "./components/PreviewActions";
 import { normalizeHexColor } from "./core/color";
 import {
+  clampCount,
   clampAsnDigits,
+  MAX_COUNT_LENGTH,
   MAX_ASN_DIGITS,
   MAX_ASN_PREFIX_LENGTH,
+  MAX_PAGE_COUNT,
   MAX_SEPARATOR_BARCODE_LENGTH,
   MAX_SEPARATOR_FREE_TEXT_LENGTH,
   MAX_SEPARATOR_HEADLINE_LENGTH,
   normalizeAsnPrefix,
+  normalizeCountInput,
+  clampPageCount,
+  normalizePageCountInput,
   normalizeSeparatorBarcodeValue,
   normalizeSeparatorFreeText,
   normalizeSeparatorHeadline,
+  normalizeStartPosition,
 } from "./core/limits";
 import { LABEL_TEXT_FONT_OPTIONS } from "./core/labelFonts";
 import { generateLayout } from "./core/layout";
@@ -47,19 +58,6 @@ const REPOSITORY_URL = "https://github.com/peterthepeter/plasn";
 const ISSUES_URL = "https://github.com/peterthepeter/plasn/issues";
 const ORIGINAL_PROJECT_URL = "https://github.com/tmaier/asn-qr-code-label-generator";
 
-const LABEL_COLOR_PRESETS = [
-  { value: "#000000", label: "Black" },
-  { value: "#1D4ED8", label: "Blue" },
-  { value: "#1E3A8A", label: "Navy" },
-  { value: "#0F766E", label: "Teal" },
-  { value: "#166534", label: "Green" },
-  { value: "#7C2D12", label: "Brown" },
-  { value: "#9A3412", label: "Orange" },
-  { value: "#7E22CE", label: "Violet" },
-  { value: "#B91C1C", label: "Red" },
-  { value: "#374151", label: "Slate" },
-];
-
 function randomId(): string {
   return globalThis.crypto?.randomUUID?.() ?? `id-${Date.now()}`;
 }
@@ -70,19 +68,6 @@ function numericValue(value: string): number | undefined {
   }
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : undefined;
-}
-
-function sanitizeHexDraft(value: string): string {
-  const normalized = value.toUpperCase().replace(/[^#0-9A-F]/g, "");
-  if (normalized === "") {
-    return "";
-  }
-
-  const withSingleHash = normalized.startsWith("#")
-    ? `#${normalized.slice(1).replace(/#/g, "")}`
-    : `#${normalized.replace(/#/g, "")}`;
-
-  return withSingleHash.slice(0, 7);
 }
 
 function downloadBlob(blob: Blob, filename: string): void {
@@ -151,6 +136,144 @@ function getSuggestedEndNumber(settings: AppSettings): number {
   return Math.max(settings.startNumber, settings.startNumber + count - 1);
 }
 
+function getRawStartSlot(settings: AppSettings): number {
+  const slotsPerPage = Math.max(
+    1,
+    getPresetSheetCount(settings.presetId, settings.customPreset),
+  );
+  const normalizedValue = Number(
+    normalizeStartPosition(settings.startPosition) || "1",
+  );
+
+  return Math.min(slotsPerPage, Math.max(1, normalizedValue || 1));
+}
+
+function usesSinglePageStartPosition(settings: AppSettings): boolean {
+  return (
+    getRequestedLabelCount(settings) <=
+    Math.max(1, getPresetSheetCount(settings.presetId, settings.customPreset))
+  );
+}
+
+function getClampedStartSlot(settings: AppSettings): number {
+  return usesSinglePageStartPosition(settings) ? getRawStartSlot(settings) : 1;
+}
+
+function getMaxLabelCountForPageLimit(settings: AppSettings): number {
+  const slotsPerPage = Math.max(
+    1,
+    getPresetSheetCount(settings.presetId, settings.customPreset),
+  );
+  const startOffset = getClampedStartSlot(settings) - 1;
+  return Math.max(1, slotsPerPage * MAX_PAGE_COUNT - startOffset);
+}
+
+function getRequestedLabelCount(settings: AppSettings): number {
+  if (settings.endNumber !== undefined) {
+    return Math.max(1, settings.endNumber - settings.startNumber + 1);
+  }
+
+  return Math.max(
+    1,
+    settings.count ??
+      Math.max(1, getPresetSheetCount(settings.presetId, settings.customPreset)),
+  );
+}
+
+function getConfiguredPageCount(settings: AppSettings): number {
+  const slotsPerPage = Math.max(
+    1,
+    getPresetSheetCount(settings.presetId, settings.customPreset),
+  );
+  const startOffset = getClampedStartSlot(settings) - 1;
+  const labelCount = getRequestedLabelCount(settings);
+  return clampPageCount(
+    Math.ceil((startOffset + labelCount) / slotsPerPage),
+  ) ?? 1;
+}
+
+function getCountForPageCount(settings: AppSettings, pageCount: number): number {
+  const slotsPerPage = Math.max(
+    1,
+    getPresetSheetCount(settings.presetId, settings.customPreset),
+  );
+  const clampedPageCount = clampPageCount(pageCount) ?? 1;
+  const startOffset =
+    clampedPageCount > 1 ? 0 : getRawStartSlot(settings) - 1;
+
+  return Math.min(
+    getMaxLabelCountForPageLimit(settings),
+    Math.max(1, slotsPerPage * clampedPageCount - startOffset),
+  );
+}
+
+function getSinglePageCapacity(settings: AppSettings): number {
+  const slotsPerPage = Math.max(
+    1,
+    getPresetSheetCount(settings.presetId, settings.customPreset),
+  );
+  return Math.max(1, slotsPerPage - getRawStartSlot(settings) + 1);
+}
+
+function applyAsnPageLimit(settings: AppSettings): AppSettings {
+  if (settings.generatorMode !== "asn") {
+    return settings;
+  }
+
+  const usesSinglePagePosition = usesSinglePageStartPosition(settings);
+  const singlePageCapacity = getSinglePageCapacity(settings);
+  const maxCount = getMaxLabelCountForPageLimit(settings);
+
+  return {
+    ...settings,
+    startPosition: usesSinglePagePosition
+      ? normalizeStartPosition(settings.startPosition) || "1"
+      : "1",
+    count:
+      settings.count === undefined
+        ? undefined
+        : Math.min(
+            settings.count,
+            usesSinglePagePosition ? singlePageCapacity : maxCount,
+          ),
+    endNumber:
+      settings.endNumber === undefined
+        ? undefined
+        : Math.min(
+            settings.endNumber,
+            settings.startNumber +
+              (usesSinglePagePosition ? singlePageCapacity : maxCount) -
+              1,
+          ),
+  };
+}
+
+function getLayoutPage(
+  layout: GeneratedDocumentLayout,
+  pageIndex: number,
+): GeneratedDocumentLayout {
+  const safeIndex = Math.min(
+    Math.max(0, pageIndex),
+    Math.max(layout.pages.length - 1, 0),
+  );
+
+  if (layout.kind === "separator") {
+    return {
+      ...layout,
+      pages: [layout.pages[safeIndex]],
+    };
+  }
+
+  const page = layout.pages[safeIndex];
+  const lastItem = page.items[page.items.length - 1];
+  return {
+    ...layout,
+    pages: [page],
+    resolvedCount: page.items.length,
+    resolvedEndNumber: lastItem?.value ?? layout.resolvedEndNumber,
+  };
+}
+
 function getPaperlessPrefix(prefix: string): string {
   const trimmed = prefix.trim();
   return trimmed === "" ? "ASN" : trimmed;
@@ -208,138 +331,14 @@ function buildGenerationKey(
   });
 }
 
-interface ColorFieldProps {
-  label: string;
-  value: string;
-  draft: string;
-  onDraftChange: (value: string) => void;
-  onCommit: (value: string) => void;
-}
-
-function ColorField({
-  label,
-  value,
-  draft,
-  onDraftChange,
-  onCommit,
-}: ColorFieldProps) {
-  const [isColorMenuOpen, setIsColorMenuOpen] = useState(false);
-  const colorMenuRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!isColorMenuOpen) {
-      return;
-    }
-
-    const handlePointerDown = (event: MouseEvent) => {
-      if (!colorMenuRef.current?.contains(event.target as Node)) {
-        setIsColorMenuOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handlePointerDown);
-    return () => document.removeEventListener("mousedown", handlePointerDown);
-  }, [isColorMenuOpen]);
-
-  const activeColorPreset =
-    LABEL_COLOR_PRESETS.find((entry) => entry.value === value) ?? null;
-
-  return (
-    <div class="color-field">
-      <span class="color-field__label">{label}</span>
-      <div class="color-field__combo" ref={colorMenuRef}>
-        <div
-          aria-hidden="true"
-          class="color-field__swatch-preview"
-          style={{ backgroundColor: value }}
-        />
-        <div class="color-field__input-wrap">
-          <input
-            aria-label={label}
-            class="color-field__input"
-            onBlur={() => onCommit(draft)}
-            onInput={(event) =>
-              onDraftChange(
-                sanitizeHexDraft((event.currentTarget as HTMLInputElement).value),
-              )
-            }
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                onCommit(draft);
-              }
-            }}
-            placeholder="#000000"
-            spellcheck={false}
-            type="text"
-            value={draft}
-          />
-        </div>
-        <button
-          aria-expanded={isColorMenuOpen}
-          aria-haspopup="listbox"
-          aria-label={`${label} presets`}
-          class="color-menu__trigger"
-          onClick={() => setIsColorMenuOpen((current) => !current)}
-          type="button"
-        >
-          <span aria-hidden="true" class="color-menu__chevron">
-            <svg
-              class="color-menu__chevron-icon"
-              fill="none"
-              viewBox="0 0 16 16"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="m4 6 4 4 4-4"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1.6"
-              />
-            </svg>
-          </span>
-        </button>
-        {isColorMenuOpen ? (
-          <div class="color-menu__popover" role="listbox">
-            {LABEL_COLOR_PRESETS.map((color) => (
-              <button
-                aria-selected={value === color.value}
-                class={`color-menu__option${
-                  value === color.value ? " color-menu__option--active" : ""
-                }`}
-                key={color.value}
-                onClick={() => {
-                  onCommit(color.value);
-                  setIsColorMenuOpen(false);
-                }}
-                role="option"
-                type="button"
-              >
-                <span
-                  aria-hidden="true"
-                  class="color-menu__dot color-menu__dot--option"
-                  style={{ backgroundColor: color.value }}
-                />
-                <span class="color-menu__option-label">{color.label}</span>
-                <span class="color-menu__option-value">{color.value}</span>
-              </button>
-            ))}
-          </div>
-        ) : null}
-      </div>
-    </div>
-  );
-}
-
-interface DirectionFieldProps {
-  locale: Locale;
-  value: GeneratorConfig["numberingDirection"];
-  onChange: (value: GeneratorConfig["numberingDirection"]) => void;
-}
-
 interface GeneratedPreviewState {
   profile: CalibrationProfile;
   settings: AppSettings;
+}
+
+interface PdfCacheEntry {
+  blob: Blob;
+  key: string;
 }
 
 interface IconProps {
@@ -462,170 +461,10 @@ function SeparatorSheetIcon({ class: className }: IconProps) {
   );
 }
 
-type NumberInputProps = Omit<JSX.InputHTMLAttributes<HTMLInputElement>, "type">;
-
-function NumberInput(props: NumberInputProps) {
-  const inputRef = useRef<HTMLInputElement | null>(null);
-  const isDisabled = Boolean(props.disabled || props.readOnly);
-
-  const stepValue = (direction: 1 | -1) => {
-    const input = inputRef.current;
-    if (!input || isDisabled) {
-      return;
-    }
-
-    if (direction > 0) {
-      input.stepUp();
-    } else {
-      input.stepDown();
-    }
-
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-    input.focus();
-  };
-
-  return (
-    <span class="number-input">
-      <input {...props} ref={inputRef} type="number" />
-      <span aria-hidden="true" class="number-input__steppers">
-        <button
-          class="number-input__stepper number-input__stepper--up"
-          disabled={isDisabled}
-          onClick={() => stepValue(1)}
-          onMouseDown={(event) => event.preventDefault()}
-          tabIndex={-1}
-          type="button"
-        >
-          <svg fill="none" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M2 6.5 5 3.5l3 3"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="1.2"
-            />
-          </svg>
-        </button>
-        <button
-          class="number-input__stepper number-input__stepper--down"
-          disabled={isDisabled}
-          onClick={() => stepValue(-1)}
-          onMouseDown={(event) => event.preventDefault()}
-          tabIndex={-1}
-          type="button"
-        >
-          <svg fill="none" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="m2 3.5 3 3 3-3"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="1.2"
-            />
-          </svg>
-        </button>
-      </span>
-    </span>
-  );
-}
-
-function DirectionField({ locale, value, onChange }: DirectionFieldProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
-    const handlePointerDown = (event: MouseEvent) => {
-      if (!menuRef.current?.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handlePointerDown);
-    return () => document.removeEventListener("mousedown", handlePointerDown);
-  }, [isOpen]);
-
-  const options: Array<{
-    value: GeneratorConfig["numberingDirection"];
-    shortLabel: string;
-    detail: string;
-  }> = [
-    {
-      value: "row",
-      shortLabel: t(locale, "optionRowShort"),
-      detail: t(locale, "optionRowDetail"),
-    },
-    {
-      value: "column",
-      shortLabel: t(locale, "optionColumnShort"),
-      detail: t(locale, "optionColumnDetail"),
-    },
-  ];
-
-  const activeOption = options.find((option) => option.value === value) ?? options[0];
-
-  return (
-    <div class="field field--span-2">
-      <span>{t(locale, "fieldDirection")}</span>
-      <div class="direction-field" ref={menuRef}>
-        <button
-          aria-expanded={isOpen}
-          aria-haspopup="listbox"
-          class="direction-field__trigger"
-          onClick={() => setIsOpen((current) => !current)}
-          type="button"
-        >
-          <span class="direction-field__trigger-label">{activeOption.shortLabel}</span>
-          <span aria-hidden="true" class="color-menu__chevron">
-            <svg
-              class="color-menu__chevron-icon"
-              fill="none"
-              viewBox="0 0 16 16"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="m4 6 4 4 4-4"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1.6"
-              />
-            </svg>
-          </span>
-        </button>
-        {isOpen ? (
-          <div class="direction-field__popover" role="listbox">
-            {options.map((option) => (
-              <button
-                aria-selected={option.value === value}
-                class={`direction-field__option${
-                  option.value === value ? " direction-field__option--active" : ""
-                }`}
-                key={option.value}
-                onClick={() => {
-                  onChange(option.value);
-                  setIsOpen(false);
-                }}
-                role="option"
-                type="button"
-              >
-                <span class="direction-field__option-title">{option.shortLabel}</span>
-                <span class="direction-field__option-detail">{option.detail}</span>
-              </button>
-            ))}
-          </div>
-        ) : null}
-      </div>
-    </div>
-  );
-}
 
 export function App() {
   const [settings, setSettings] = useState<AppSettings>(() => {
-    return loadSettings();
+    return applyAsnPageLimit(loadSettings());
   });
   const [qrColorDraft, setQrColorDraft] = useState(settings.qrColor);
   const [textColorDraft, setTextColorDraft] = useState(settings.textColor);
@@ -663,6 +502,8 @@ export function App() {
     settings.locale === "de" ? "Switch to English" : "Zu Deutsch wechseln";
   const profileImportRef = useRef<HTMLInputElement | null>(null);
   const profileActionsRef = useRef<HTMLDivElement | null>(null);
+  const cachedPdfRef = useRef<PdfCacheEntry | null>(null);
+  const pendingPdfRef = useRef<{ key: string; promise: Promise<Blob> } | null>(null);
 
   const profiles = ensureCalibrationProfiles(allProfiles, settings.presetId);
   const selectedProfile =
@@ -672,6 +513,7 @@ export function App() {
   const generatedPreview = generatedByMode[settings.generatorMode];
   const generatedSettings = generatedPreview?.settings ?? null;
   const generatedProfile = generatedPreview?.profile ?? null;
+  const isCustomCalibrationProfile = selectedProfile.id !== "default";
   const layout: GeneratedDocumentLayout | null =
     generatedSettings && generatedProfile
       ? generatedSettings.generatorMode === "separator"
@@ -727,7 +569,12 @@ export function App() {
           "PAPERLESS_CONSUMER_BARCODE_DPI=600",
           "PAPERLESS_CONSUMER_BARCODE_UPSCALE=1.5",
         ].join("\n");
+  const configuredPageCount = getConfiguredPageCount(settings);
   const canExport = layout !== null && layout.pages.length > 0;
+  const currentPageIndex = Math.min(
+    pageIndex,
+    Math.max((layout?.pages.length ?? 1) - 1, 0),
+  );
   const canGenerate = !isExporting;
   const liveSettingsKey = buildGenerationKey(
     settings,
@@ -750,6 +597,82 @@ export function App() {
       : null;
   const hasGeneratedExport =
     layout !== null && generatedStateKey === liveSettingsKey;
+
+  function getPdfExportFilename(currentLayout: GeneratedDocumentLayout): string {
+    return currentLayout.kind === "separator"
+      ? `plasn-separator-${slugifyValue(currentLayout.barcodeValue)}.pdf`
+      : `plasn-${currentLayout.preset.id}-${generatedSettings?.startNumber ?? settings.startNumber}.pdf`;
+  }
+
+  function getPdfExportOptions() {
+    if (!layout) {
+      return null;
+    }
+
+    return {
+      barcodeColor:
+        generatedSettings?.generatorMode === "separator"
+          ? generatedSettings.separatorBarcodeColor
+          : generatedSettings?.qrColor ?? activeBarcodeColor,
+      fontFamily:
+        generatedSettings?.textFontFamily ?? settings.textFontFamily,
+      locale: generatedSettings?.locale ?? settings.locale,
+      textColor:
+        generatedSettings?.generatorMode === "separator"
+          ? generatedSettings.separatorTextColor
+          : generatedSettings?.textColor ?? activeTextColor,
+    };
+  }
+
+  async function buildPdfBlobForCurrentLayout(): Promise<Blob | null> {
+    if (!layout || !generatedStateKey) {
+      return null;
+    }
+
+    if (cachedPdfRef.current?.key === generatedStateKey) {
+      return cachedPdfRef.current.blob;
+    }
+
+    if (pendingPdfRef.current?.key === generatedStateKey) {
+      return pendingPdfRef.current.promise;
+    }
+
+    const exportOptions = getPdfExportOptions();
+    if (!exportOptions) {
+      return null;
+    }
+
+    const promise = import("./core/pdf")
+      .then(({ renderPdf }) =>
+        renderPdf(
+          layout,
+          exportOptions.locale,
+          exportOptions.barcodeColor,
+          exportOptions.textColor,
+          exportOptions.fontFamily,
+        ),
+      )
+      .then((blob) => {
+        cachedPdfRef.current = {
+          blob,
+          key: generatedStateKey,
+        };
+        return blob;
+      })
+      .finally(() => {
+        if (pendingPdfRef.current?.key === generatedStateKey) {
+          pendingPdfRef.current = null;
+        }
+      });
+
+    pendingPdfRef.current = {
+      key: generatedStateKey,
+      promise,
+    };
+
+    return promise;
+  }
+
   useEffect(() => {
     setAllProfiles((current) => {
       const existingProfiles = current[settings.presetId];
@@ -845,10 +768,22 @@ export function App() {
   ]);
 
   function updateSettings(patch: Partial<AppSettings>) {
-    setSettings((current) => ({
-      ...current,
-      ...patch,
-    }));
+    const normalizedPatch = { ...patch };
+    if (normalizedPatch.startPosition !== undefined) {
+      normalizedPatch.startPosition = normalizeStartPosition(
+        normalizedPatch.startPosition,
+      );
+    }
+    if (normalizedPatch.count !== undefined) {
+      normalizedPatch.count = clampCount(normalizedPatch.count);
+    }
+
+    setSettings((current) =>
+      applyAsnPageLimit({
+        ...current,
+        ...normalizedPatch,
+      }),
+    );
   }
 
   useEffect(() => {
@@ -866,6 +801,22 @@ export function App() {
       },
     }));
   }, [isAutoGenerate, liveSettingsKey]);
+
+  useEffect(() => {
+    if (!hasGeneratedExport || !layout || !generatedStateKey) {
+      return;
+    }
+
+    if (cachedPdfRef.current?.key === generatedStateKey) {
+      return;
+    }
+
+    if (pendingPdfRef.current?.key === generatedStateKey) {
+      return;
+    }
+
+    void buildPdfBlobForCurrentLayout();
+  }, [generatedStateKey, hasGeneratedExport, layout]);
 
   function commitQrColor(rawValue: string) {
     const normalized = normalizeHexColor(rawValue, settings.qrColor);
@@ -915,13 +866,15 @@ export function App() {
     key: K,
     value: LabelPreset[K],
   ) {
-    setSettings((current) => ({
-      ...current,
-      customPreset: {
-        ...current.customPreset,
-        [key]: value,
-      },
-    }));
+    setSettings((current) =>
+      applyAsnPageLimit({
+        ...current,
+        customPreset: {
+          ...current.customPreset,
+          [key]: value,
+        },
+      }),
+    );
   }
 
   function updateProfile(patch: Partial<CalibrationProfile>) {
@@ -946,24 +899,12 @@ export function App() {
 
     setIsExporting(true);
     try {
-      const { renderPdf } = await import("./core/pdf");
-      const blob = await renderPdf(
-        layout,
-        generatedSettings?.locale ?? settings.locale,
-        generatedSettings?.generatorMode === "separator"
-          ? generatedSettings.separatorBarcodeColor
-          : generatedSettings?.qrColor ?? activeBarcodeColor,
-        generatedSettings?.generatorMode === "separator"
-          ? generatedSettings.separatorTextColor
-          : generatedSettings?.textColor ?? activeTextColor,
-        generatedSettings?.textFontFamily ?? settings.textFontFamily,
-      );
-      downloadBlob(
-        blob,
-        layout.kind === "separator"
-          ? `plasn-separator-${slugifyValue(layout.barcodeValue)}.pdf`
-          : `plasn-${layout.preset.id}-${generatedSettings?.startNumber ?? settings.startNumber}.pdf`,
-      );
+      const blob = await buildPdfBlobForCurrentLayout();
+      if (!blob) {
+        return;
+      }
+
+      downloadBlob(blob, getPdfExportFilename(layout));
     } finally {
       setIsExporting(false);
     }
@@ -988,7 +929,7 @@ export function App() {
     setIsExporting(true);
     try {
       await printLayout(
-        layout,
+        getLayoutPage(layout, currentPageIndex),
         settings.locale,
         activeBarcodeColor,
         activeTextColor,
@@ -1009,6 +950,16 @@ export function App() {
         profile: profileSnapshot,
       },
     }));
+  }
+
+  function handlePageCountChange(value: string) {
+    const normalizedPageCount = clampPageCount(
+      numericValue(normalizePageCountInput(value)),
+    );
+    updateSettings({
+      count: getCountForPageCount(settings, normalizedPageCount ?? 1),
+      endNumber: undefined,
+    });
   }
 
   function handleNewProfile() {
@@ -1179,7 +1130,7 @@ export function App() {
   return (
     <div class="app-shell">
       <div class="app-noise" />
-      <header class="topbar">
+      <header class="topbar topbar--frameless">
         <div class="topbar__top">
           <div class="topbar__brand">
             <div class="brand-row">
@@ -1498,7 +1449,13 @@ export function App() {
               <p class="field-hint">{t(settings.locale, "hintCustom")}</p>
             ) : null}
             <div class="sheet-setup__config">
-            <div class="sheet-setup__row sheet-setup__row--numbers">
+            <div
+              class={`sheet-setup__row sheet-setup__row--numbers${
+                configuredPageCount > 1
+                  ? " sheet-setup__row--numbers-multi-page"
+                  : ""
+              }`}
+            >
               <label class="field">
                 <span>{t(settings.locale, "fieldStartNumber")}</span>
                 <NumberInput
@@ -1530,30 +1487,58 @@ export function App() {
               </label>
               <label class="field">
                 <span>{t(settings.locale, "fieldCount")}</span>
-                <NumberInput
-                  min={1}
+                <input
+                  inputMode="numeric"
+                  maxLength={MAX_COUNT_LENGTH}
                   onInput={(event) =>
                     updateSettings({
-                      count: numericValue(
-                        (event.currentTarget as HTMLInputElement).value,
+                      count: clampCount(
+                        numericValue(
+                          normalizeCountInput(
+                            (event.currentTarget as HTMLInputElement).value,
+                          ),
+                        ),
                       ),
                     })
                   }
+                  pattern="[0-9]*"
+                  type="text"
                   value={settings.count ?? ""}
                 />
               </label>
               <label class="field field--narrow">
-                <span>{t(settings.locale, "fieldStartPosition")}</span>
-                <input
+                <span>{t(settings.locale, "fieldPageCount")}</span>
+                <NumberInput
+                  max={MAX_PAGE_COUNT}
+                  min={1}
                   onInput={(event) =>
-                    updateSettings({
-                      startPosition: (event.currentTarget as HTMLInputElement).value,
-                    })
+                    handlePageCountChange(
+                      (event.currentTarget as HTMLInputElement).value,
+                    )
                   }
-                  type="text"
-                  value={settings.startPosition}
+                  step={1}
+                  value={configuredPageCount}
                 />
               </label>
+              {configuredPageCount <= 1 ? (
+                <label class="field field--narrow">
+                  <span>{t(settings.locale, "fieldStartPosition")}</span>
+                  <input
+                    inputMode="numeric"
+                    maxLength={3}
+                    onInput={(event) =>
+                      updateSettings({
+                        startPosition: normalizeStartPosition(
+                          (event.currentTarget as HTMLInputElement).value,
+                        ),
+                      })
+                    }
+                    pattern="[0-9]*"
+                    type="text"
+                    value={settings.startPosition}
+                  />
+                </label>
+              ) : null}
             </div>
             <div class="sheet-setup__row sheet-setup__row--details">
               <label class="field">
@@ -1677,227 +1662,34 @@ export function App() {
             </div>
           </div>
 
-          <div class="section-card">
-            <div class="section-card__header">
-              <div class="section-card__header-title">
-                <h3>{t(settings.locale, "sectionCalibration")}</h3>
-                <button
-                  aria-label={t(settings.locale, "calibrationHelpOpen")}
-                  class="info-button"
-                  onClick={() => setIsCalibrationHelpOpen(true)}
-                  type="button"
-                >
-                  ?
-                </button>
-              </div>
-            </div>
-            <div class="form-grid">
-              <label class="field">
-                <span>{t(settings.locale, "fieldCalibrationProfile")}</span>
-                <select
-                  onInput={(event) =>
-                    updateSettings({
-                      calibrationProfileId: (
-                        event.currentTarget as HTMLSelectElement
-                      ).value,
-                    })
-                  }
-                  value={selectedProfile.id}
-                >
-                  {profiles.map((profile) => (
-                    <option key={profile.id} value={profile.id}>
-                      {profile.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label class="field">
-                <span>{t(settings.locale, "fieldProfileName")}</span>
-                <input
-                  disabled={selectedProfile.id === "default"}
-                  onInput={(event) =>
-                    updateProfile({
-                      name: (event.currentTarget as HTMLInputElement).value,
-                    })
-                  }
-                  type="text"
-                  value={selectedProfile.name}
-                />
-              </label>
-            </div>
-            <div class="calibration-controls-grid">
-              <label class="field field--compact">
-                <span>{t(settings.locale, "fieldOffsetX")}</span>
-                <NumberInput
-                  onInput={(event) =>
-                    updateProfile({
-                      offsetXMm:
-                        Number((event.currentTarget as HTMLInputElement).value) || 0,
-                    })
-                  }
-                  step="0.01"
-                  value={selectedProfile.offsetXMm}
-                />
-              </label>
-              <label class="field field--compact">
-                <span>{t(settings.locale, "fieldOffsetY")}</span>
-                <NumberInput
-                  onInput={(event) =>
-                    updateProfile({
-                      offsetYMm:
-                        Number((event.currentTarget as HTMLInputElement).value) || 0,
-                    })
-                  }
-                  step="0.01"
-                  value={selectedProfile.offsetYMm}
-                />
-              </label>
-              <label class="field field--compact">
-                <span>{t(settings.locale, "fieldPitchX")}</span>
-                <NumberInput
-                  onInput={(event) =>
-                    updateProfile({
-                      pitchAdjustXMm:
-                        Number((event.currentTarget as HTMLInputElement).value) || 0,
-                    })
-                  }
-                  step="0.01"
-                  value={selectedProfile.pitchAdjustXMm}
-                />
-              </label>
-              <label class="field field--compact">
-                <span>{t(settings.locale, "fieldPitchY")}</span>
-                <NumberInput
-                  onInput={(event) =>
-                    updateProfile({
-                      pitchAdjustYMm:
-                        Number((event.currentTarget as HTMLInputElement).value) || 0,
-                    })
-                  }
-                  step="0.01"
-                  value={selectedProfile.pitchAdjustYMm}
-                />
-              </label>
-              <label class="field field--compact">
-                <span>{t(settings.locale, "fieldShowBorders")}</span>
-                <button
-                  aria-pressed={settings.showBorders}
-                  class={`toggle-row${settings.showBorders ? " toggle-row--active" : ""}`}
-                  onClick={() =>
-                    updateSettings({ showBorders: !settings.showBorders })
-                  }
-                  type="button"
-                >
-                  <span class="toggle-row__status">
-                    {t(
-                      settings.locale,
-                      settings.showBorders ? "toggleEnabled" : "toggleDisabled",
-                    )}
-                  </span>
-                  <span class="toggle-switch" aria-hidden="true">
-                    <span class="toggle-switch__thumb" />
-                  </span>
-                </button>
-              </label>
-            </div>
-            <div class="calibration-actions-row">
-              <div class="profile-actions" ref={profileActionsRef}>
-                <button
-                  aria-expanded={isProfileActionsOpen}
-                  aria-haspopup="menu"
-                  class="button button--ghost profile-actions__trigger"
-                  onClick={() => setIsProfileActionsOpen((current) => !current)}
-                  type="button"
-                >
-                  <span>{t(settings.locale, "buttonProfileActions")}</span>
-                  <span aria-hidden="true" class="color-menu__chevron">
-                    ▾
-                  </span>
-                </button>
-                {isProfileActionsOpen ? (
-                  <div class="profile-actions__menu" role="menu">
-                    <button
-                      class="profile-actions__item"
-                      onClick={handleNewProfile}
-                      role="menuitem"
-                      type="button"
-                    >
-                      {t(settings.locale, "buttonNewProfile")}
-                    </button>
-                    <button
-                      class="profile-actions__item"
-                      onClick={handleDuplicateProfile}
-                      role="menuitem"
-                      type="button"
-                    >
-                      {t(settings.locale, "buttonDuplicateProfile")}
-                    </button>
-                    <button
-                      class="profile-actions__item"
-                      disabled={profiles.length <= 1 || selectedProfile.id === "default"}
-                      onClick={handleDeleteProfile}
-                      role="menuitem"
-                      type="button"
-                    >
-                      {t(settings.locale, "buttonDeleteProfile")}
-                    </button>
-                    <button
-                      class="profile-actions__item"
-                      onClick={handleExportProfiles}
-                      role="menuitem"
-                      type="button"
-                    >
-                      {t(settings.locale, "buttonExportProfiles")}
-                    </button>
-                    <button
-                      class="profile-actions__item"
-                      onClick={() => {
-                        setIsProfileActionsOpen(false);
-                        profileImportRef.current?.click();
-                      }}
-                      role="menuitem"
-                      type="button"
-                    >
-                      {t(settings.locale, "buttonImportProfiles")}
-                    </button>
-                  </div>
-                ) : null}
-                <input
-                  accept="application/json,.json"
-                  class="visually-hidden"
-                  onInput={handleImportProfiles}
-                  ref={profileImportRef}
-                  type="file"
-                />
-              </div>
-              <div class="overlay-actions">
-                <button
-                  class="button button--ghost"
-                  disabled={isExporting}
-                  onClick={handleOverlayPdfDownload}
-                  type="button"
-                >
-                  {t(settings.locale, "buttonOverlayPdf")}
-                </button>
-                <button
-                  aria-label={t(settings.locale, "overlayHelpOpen")}
-                  class="info-button"
-                  onClick={() => setIsOverlayInfoOpen(true)}
-                  type="button"
-                >
-                  ?
-                </button>
-              </div>
-            </div>
-            {profileTransferNotice ? (
-              <p
-                class={`field-hint field-hint--${profileTransferNotice.tone}`}
-                role="status"
-              >
-                {profileTransferNotice.message}
-              </p>
-            ) : null}
-          </div>
+          <CalibrationPanel
+            isCustomCalibrationProfile={isCustomCalibrationProfile}
+            isExporting={isExporting}
+            isProfileActionsOpen={isProfileActionsOpen}
+            locale={settings.locale}
+            onCreateProfile={handleNewProfile}
+            onDeleteProfile={handleDeleteProfile}
+            onDuplicateProfile={handleDuplicateProfile}
+            onExportProfiles={handleExportProfiles}
+            onImportProfiles={handleImportProfiles}
+            onOpenHelp={() => setIsCalibrationHelpOpen(true)}
+            onOpenOverlayInfo={() => setIsOverlayInfoOpen(true)}
+            onOverlayPdfDownload={handleOverlayPdfDownload}
+            onSelectProfile={(calibrationProfileId) =>
+              updateSettings({ calibrationProfileId })
+            }
+            onToggleProfileActions={() => setIsProfileActionsOpen((current) => !current)}
+            onToggleShowBorders={() =>
+              updateSettings({ showBorders: !settings.showBorders })
+            }
+            onUpdateProfile={updateProfile}
+            profileActionsRef={profileActionsRef}
+            profileImportRef={profileImportRef}
+            profileTransferNotice={profileTransferNotice}
+            profiles={profiles}
+            selectedProfile={selectedProfile}
+            showBorders={settings.showBorders}
+          />
             </>
           ) : (
             <div class="section-card">
@@ -1988,7 +1780,7 @@ export function App() {
         </section>
 
         <aside class="preview-column">
-          <div class="section-card section-card--preview section-card--sticky">
+          <div class="section-card section-card--preview section-card--preview-plain section-card--sticky">
             {layout?.warnings.length ? (
               <div class="warning-stack" role="status">
                 <h4>{t(settings.locale, "warningTitle")}</h4>
@@ -2002,73 +1794,37 @@ export function App() {
 
             <PreviewPanel
               actions={
-                <>
-                  <div class="button-row__group">
-                    {hasGeneratedExport ? (
-                      <>
-                        <button
-                          class="button button--primary button--with-icon"
-                          disabled={isExporting || !canExport}
-                          onClick={handlePdfDownload}
-                          type="button"
-                        >
-                          <DownloadIcon class="button__icon" />
-                          {t(settings.locale, "buttonPdf")}
-                        </button>
-                        <button
-                          class="button button--primary button--with-icon"
-                          disabled={isExporting || !canExport}
-                          onClick={handlePrint}
-                          type="button"
-                        >
-                          <PrintIcon class="button__icon" />
-                          {t(settings.locale, "buttonPrint")}
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        class="button button--primary"
-                        disabled={!canGenerate}
-                        onClick={handleGenerateExport}
-                        type="button"
-                      >
-                        {t(settings.locale, "buttonGenerate")}
-                      </button>
-                    )}
-                  </div>
-                  <div class="button-row__group button-row__group--end">
-                    <button
-                      class="button button--text"
-                      onClick={handleReset}
-                      type="button"
-                    >
-                      {t(settings.locale, "buttonReset")}
-                    </button>
-                    <button
-                      aria-pressed={isAutoGenerate}
-                      class={`output-toggle${isAutoGenerate ? " output-toggle--active" : ""}`}
-                      onClick={() => setIsAutoGenerate((current) => !current)}
-                      type="button"
-                    >
-                      <span class="output-toggle__label">
-                        {t(settings.locale, "buttonAutoGenerate")}
-                      </span>
-                      <span
-                        aria-hidden="true"
-                        class={`output-toggle__switch${
-                          isAutoGenerate ? " output-toggle__switch--active" : ""
-                        }`}
-                      >
-                        <span class="output-toggle__thumb" />
-                      </span>
-                    </button>
-                  </div>
-                </>
+                <PreviewActions
+                  DownloadIcon={DownloadIcon}
+                  PrintIcon={PrintIcon}
+                  canExport={canExport}
+                  canGenerate={canGenerate}
+                  hasGeneratedExport={hasGeneratedExport}
+                  isAutoGenerate={isAutoGenerate}
+                  isExporting={isExporting}
+                  locale={settings.locale}
+                  onDownloadPdf={handlePdfDownload}
+                  onGenerate={handleGenerateExport}
+                  onNextPage={() =>
+                    setPageIndex((current) =>
+                      Math.min((layout?.pages.length ?? 1) - 1, current + 1),
+                    )
+                  }
+                  onPreviousPage={() =>
+                    setPageIndex((current) => Math.max(0, current - 1))
+                  }
+                  onPrint={handlePrint}
+                  onReset={handleReset}
+                  onToggleAutoGenerate={() =>
+                    setIsAutoGenerate((current) => !current)
+                  }
+                  pageCount={layout?.pages.length ?? 1}
+                  pageIndex={currentPageIndex}
+                />
               }
               layout={layout}
               locale={settings.locale}
-              onPageChange={setPageIndex}
-              pageIndex={Math.min(pageIndex, Math.max((layout?.pages.length ?? 1) - 1, 0))}
+              pageIndex={currentPageIndex}
               qrColor={activeBarcodeColor}
               textColor={activeTextColor}
               textFontFamily={generatedSettings?.textFontFamily ?? settings.textFontFamily}

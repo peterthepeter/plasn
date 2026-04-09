@@ -21,30 +21,40 @@ describe("App", () => {
   it("creates a new calibration profile next to default", () => {
     render(<App />);
 
-    fireEvent.click(screen.getByRole("button", { name: /Profile actions/i }));
-    fireEvent.click(screen.getByRole("menuitem", { name: /New profile/i }));
+    fireEvent.input(screen.getByRole("combobox", { name: /Profile/i }), {
+      target: { value: "__new_profile__" },
+    });
 
     const options = screen.getAllByRole("option").map((option) => option.textContent);
     expect(options).toContain("Default");
     expect(options).toContain("New profile");
+    expect(options).toContain("New profile…");
   });
 
   it("creates a new calibration profile in german UI", () => {
     render(<App />);
 
     fireEvent.click(screen.getByRole("button", { name: /Deutsch/i }));
-    fireEvent.click(screen.getByRole("button", { name: /Profilaktionen/i }));
-    fireEvent.click(screen.getByRole("menuitem", { name: /Neues Profil/i }));
+    fireEvent.input(screen.getByRole("combobox", { name: /Profil/i }), {
+      target: { value: "__new_profile__" },
+    });
 
     const options = screen.getAllByRole("option").map((option) => option.textContent);
     expect(options).toContain("Default");
     expect(options).toContain("Neues Profil");
+    expect(options).toContain("Neues Profil…");
   });
 
-  it("keeps the default calibration profile name protected", () => {
+  it("shows the profile name field only for custom profiles", () => {
     render(<App />);
 
-    expect(screen.getByRole("textbox", { name: /Name/i })).toBeDisabled();
+    expect(screen.queryByRole("textbox", { name: /Name/i })).not.toBeInTheDocument();
+
+    fireEvent.input(screen.getByRole("combobox", { name: /Profile/i }), {
+      target: { value: "__new_profile__" },
+    });
+
+    expect(screen.getByRole("textbox", { name: /Name/i })).toBeInTheDocument();
   });
 
   it("switches into separator mode and shows separator-specific fields", () => {
@@ -81,6 +91,76 @@ describe("App", () => {
     expect(
       screen.queryByRole("button", { name: /Download PDF|PDF herunterladen/i }),
     ).not.toBeInTheDocument();
+  });
+
+  it("uses the page count field for multi-page previews", () => {
+    render(<App />);
+
+    fireEvent.input(screen.getByRole("spinbutton", { name: /Pages/i }), {
+      target: { value: "2" },
+    });
+
+    expect(
+      screen.queryByRole("textbox", { name: /Start position/i }),
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /^Generate$|^Generieren$/i }),
+    );
+
+    expect(screen.getByText(/Page 1 of 2/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Next page/i }));
+
+    expect(screen.getByText(/Page 2 of 2/i)).toBeInTheDocument();
+  });
+
+  it("clamps the page count field to ten pages", () => {
+    render(<App />);
+
+    fireEvent.input(screen.getByRole("spinbutton", { name: /Pages/i }), {
+      target: { value: "11" },
+    });
+
+    expect(screen.getByRole("spinbutton", { name: /Pages/i })).toHaveValue(10);
+  });
+
+  it("shows start position again when returning to one page", () => {
+    render(<App />);
+
+    fireEvent.input(screen.getByRole("textbox", { name: /Start position/i }), {
+      target: { value: "150" },
+    });
+
+    fireEvent.input(screen.getByRole("spinbutton", { name: /Pages/i }), {
+      target: { value: "2" },
+    });
+    expect(
+      screen.queryByRole("textbox", { name: /Start position/i }),
+    ).not.toBeInTheDocument();
+
+    fireEvent.input(screen.getByRole("spinbutton", { name: /Pages/i }), {
+      target: { value: "1" },
+    });
+
+    expect(
+      screen.getByRole("textbox", { name: /Start position/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("textbox", { name: /Start position/i }),
+    ).toHaveValue("1");
+  });
+
+  it("keeps one page selected when start position moves deeper into the sheet", () => {
+    render(<App />);
+
+    fireEvent.input(screen.getByRole("textbox", { name: /Start position/i }), {
+      target: { value: "150" },
+    });
+
+    expect(screen.getByRole("spinbutton", { name: /Pages/i })).toHaveValue(1);
+    expect(screen.getByRole("textbox", { name: /Start position/i })).toHaveValue("150");
+    expect(screen.getByRole("textbox", { name: /Count/i })).toHaveValue("40");
   });
 
   it("opens the workflow help modal in german UI", () => {

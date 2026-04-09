@@ -23,7 +23,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       "These settings define which ASN labels are generated on the current sheet.",
     generatorHelpStartPositionTitle: "Start position",
     generatorHelpStartPositionBody:
-      "Use either a slot number like 1 or a row:column value like 3:2.",
+      "Use a slot number like 1 to continue on a partly used sheet.",
     generatorHelpRangeTitle: "End number and count",
     generatorHelpRangeBody:
       "If an end number is set, it overrides the count and defines the exact range.",
@@ -100,6 +100,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     fieldStartNumber: "Start number",
     fieldEndNumber: "End number",
     fieldCount: "Count",
+    fieldPageCount: "Pages",
     fieldPrefix: "Prefix",
     fieldDigits: "Digits",
     fieldQrColor: "QR color",
@@ -149,7 +150,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     hintCount:
       "If an end number is set, it overrides the count and defines the exact range.",
     hintStartPosition:
-      "Use either a slot number like 1 or a row:column value like 3:2.",
+      "Use a slot number like 1 to continue on a partly used sheet.",
     hintPrefix:
       "If this differs from ASN, update Paperless-ngx accordingly.",
     hintCalibration:
@@ -162,8 +163,11 @@ const dictionaries: Record<Locale, Dictionary> = {
     buttonAutoGenerate: "Auto-generate",
     buttonPdf: "Download PDF",
     buttonPrint: "Print",
+    buttonPreviousPage: "Previous page",
+    buttonNextPage: "Next page",
     buttonReset: "Reset settings",
     buttonNewProfile: "New profile",
+    optionNewProfile: "New profile…",
     buttonDeleteProfile: "Delete profile",
     buttonDuplicateProfile: "Duplicate",
     buttonExportProfiles: "Export profiles",
@@ -205,6 +209,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     overlayHelp:
       "Print this overlay on plain paper, place it behind a real label sheet, and hold both against the light. If everything is shifted equally, adjust Offset. If the error grows across the sheet, adjust Pitch.",
     previewNoPages: "No labels to preview yet.",
+    previewGenerating: "Generating image…",
     previewGenerateHint: "Press Generate to build the preview, PDF, and print layout.",
     borderLabel: "Debug borders",
     toggleEnabled: "on",
@@ -225,7 +230,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     warning_countRequired: "Enter an end number or a count greater than zero.",
     warning_invalidRange: "The end number must be greater than or equal to the start number.",
     warning_invalidStartPosition:
-      "The start position must be a positive slot number or a row:column pair.",
+      "The start position must be a positive slot number.",
     warning_startPositionOutOfRange:
       "The selected start position is outside the preset sheet.",
     warning_presetOverflowX:
@@ -259,7 +264,7 @@ const dictionaries: Record<Locale, Dictionary> = {
       "Diese Einstellungen legen fest, welche ASN-Etiketten auf dem aktuellen Bogen erzeugt werden.",
     generatorHelpStartPositionTitle: "Startposition",
     generatorHelpStartPositionBody:
-      "Entweder eine Slot-Nummer wie 1 oder einen Wert wie 3:2 für Zeile:Spalte verwenden.",
+      "Verwende eine Slot-Nummer wie 1, um auf einem angebrochenen Bogen fortzufahren.",
     generatorHelpRangeTitle: "Endnummer und Anzahl",
     generatorHelpRangeBody:
       "Wenn eine Endnummer gesetzt ist, hat sie Vorrang vor der Anzahl und bestimmt den exakten Bereich.",
@@ -336,6 +341,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     fieldStartNumber: "Startnummer",
     fieldEndNumber: "Endnummer",
     fieldCount: "Anzahl",
+    fieldPageCount: "Seiten",
     fieldPrefix: "Präfix",
     fieldDigits: "Stellen",
     fieldQrColor: "QR-Farbe",
@@ -385,7 +391,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     hintCount:
       "Wenn eine Endnummer gesetzt ist, hat sie Vorrang vor der Anzahl und bestimmt den exakten Bereich.",
     hintStartPosition:
-      "Entweder eine Slot-Nummer wie 1 oder einen Wert wie 3:2 für Zeile:Spalte verwenden.",
+      "Verwende eine Slot-Nummer wie 1, um auf einem angebrochenen Bogen fortzufahren.",
     hintPrefix:
       "Falls dies nicht ASN ist, muss der Wert in Paperless-ngx ebenfalls angepasst werden.",
     hintCalibration:
@@ -398,8 +404,11 @@ const dictionaries: Record<Locale, Dictionary> = {
     buttonAutoGenerate: "Auto-Generieren",
     buttonPdf: "PDF herunterladen",
     buttonPrint: "Drucken",
+    buttonPreviousPage: "Vorherige Seite",
+    buttonNextPage: "Nächste Seite",
     buttonReset: "Einstellungen zurücksetzen",
     buttonNewProfile: "Neues Profil",
+    optionNewProfile: "Neues Profil…",
     buttonDeleteProfile: "Profil löschen",
     buttonDuplicateProfile: "Duplizieren",
     buttonExportProfiles: "Profile exportieren",
@@ -441,6 +450,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     overlayHelp:
       "Drucke diesen Overlay-Testbogen auf Normalpapier, lege ihn hinter einen echten Etikettenbogen und halte beides gegen das Licht. Wenn alles gleich verschoben ist, passe den Offset an. Wenn der Fehler über den Bogen wächst, passe Pitch an.",
     previewNoPages: "Noch keine Etiketten zur Vorschau vorhanden.",
+    previewGenerating: "Bild wird generiert…",
     previewGenerateHint:
       "Drücke auf Generieren, um Vorschau, PDF und Drucklayout zu erstellen.",
     borderLabel: "Debug-Rahmen",
@@ -464,7 +474,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     warning_invalidRange:
       "Die Endnummer muss größer oder gleich der Startnummer sein.",
     warning_invalidStartPosition:
-      "Die Startposition muss eine positive Slot-Nummer oder ein Zeile:Spalte-Wert sein.",
+      "Die Startposition muss eine positive Slot-Nummer sein.",
     warning_startPositionOutOfRange:
       "Die gewählte Startposition liegt außerhalb des Etikettenbogens.",
     warning_presetOverflowX:

@@ -2,7 +2,7 @@ import type { ComponentChildren } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { getRunTotalWidth } from "../core/code128";
 import { getLabelTextCssFamily } from "../core/labelFonts";
-import { getQrDataUrl } from "../core/qr";
+import { getQrDataUrlMap } from "../core/qr";
 import type { GeneratedDocumentLayout, LabelTextFontFamily, Locale } from "../core/types";
 import { t } from "../core/i18n";
 
@@ -13,7 +13,6 @@ interface PreviewPanelProps {
   textColor: string;
   textFontFamily: LabelTextFontFamily;
   pageIndex: number;
-  onPageChange: (pageIndex: number) => void;
   actions?: ComponentChildren;
   footer?: ComponentChildren;
 }
@@ -25,18 +24,16 @@ export function PreviewPanel({
   textColor,
   textFontFamily,
   pageIndex,
-  onPageChange,
   actions,
   footer,
 }: PreviewPanelProps) {
   if (!layout) {
     return (
       <div class="preview-shell">
-        {actions ? <div class="button-row button-row--preview">{actions}</div> : null}
+        {actions}
         <div class="preview-empty">
           <p>{t(locale, "previewGenerateHint")}</p>
         </div>
-        {footer}
       </div>
     );
   }
@@ -46,34 +43,40 @@ export function PreviewPanel({
   const separatorPage =
     layout.kind === "separator" ? layout.pages[pageIndex] : null;
   const [qrMap, setQrMap] = useState<Record<string, string>>({});
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const [scale, setScale] = useState(1.8);
   const surfaceRef = useRef<HTMLDivElement | null>(null);
+  const hasCompleteQrMap = asnPage
+    ? asnPage.items.every((item) => Boolean(qrMap[item.encodedText]))
+    : true;
+  const showLoadingState = Boolean(asnPage) && (!hasCompleteQrMap || isPreviewLoading);
 
   useEffect(() => {
     let cancelled = false;
 
     if (!asnPage && !separatorPage) {
       setQrMap({});
+      setIsPreviewLoading(false);
       return;
     }
 
     if (!asnPage) {
       setQrMap({});
+      setIsPreviewLoading(false);
       return;
     }
 
-    Promise.all(
-      asnPage.items.map(async (item) => ({
-        text: item.encodedText,
-        url: await getQrDataUrl(item.encodedText, qrColor),
-      })),
+    setIsPreviewLoading(true);
+
+    getQrDataUrlMap(
+      asnPage.items.map((item) => item.encodedText),
+      qrColor,
     ).then((entries) => {
       if (cancelled) {
         return;
       }
-      setQrMap(
-        Object.fromEntries(entries.map((entry) => [entry.text, entry.url])),
-      );
+      setQrMap(entries);
+      setIsPreviewLoading(false);
     });
 
     return () => {
@@ -101,11 +104,10 @@ export function PreviewPanel({
   if (!page) {
     return (
       <div class="preview-shell">
-        {actions ? <div class="button-row button-row--preview">{actions}</div> : null}
+        {actions}
         <div class="preview-empty">
           <p>{t(locale, "previewNoPages")}</p>
         </div>
-        {footer}
       </div>
     );
   }
@@ -119,7 +121,7 @@ export function PreviewPanel({
             width: `${page.pageWidthMm * scale}px`,
           }}
         >
-          {actions ? <div class="button-row button-row--preview">{actions}</div> : null}
+          {actions}
 
           <div class="preview-toolbar">
             <span class="preview-toolbar__meta">
@@ -135,32 +137,10 @@ export function PreviewPanel({
                     nextStart: layout.resolvedEndNumber + 1,
                   })}
             </span>
-            {layout.pages.length > 1 ? (
-              <div class="preview-toolbar__actions">
-                <button
-                  class="preview-toolbar__nav"
-                  disabled={pageIndex <= 0}
-                  onClick={() => onPageChange(Math.max(0, pageIndex - 1))}
-                  type="button"
-                >
-                  ‹
-                </button>
-                <button
-                  class="preview-toolbar__nav"
-                  disabled={pageIndex >= layout.pages.length - 1}
-                  onClick={() =>
-                    onPageChange(Math.min(layout.pages.length - 1, pageIndex + 1))
-                  }
-                  type="button"
-                >
-                  ›
-                </button>
-              </div>
-            ) : null}
           </div>
 
           <div
-            class="preview-page"
+            class={`preview-page${showLoadingState ? " preview-page--loading" : ""}`}
             style={{
               width: `${page.pageWidthMm * scale}px`,
               height: `${page.pageHeightMm * scale}px`,
@@ -230,7 +210,7 @@ export function PreviewPanel({
                   </div>
                 ) : null}
               </>
-            ) : (
+            ) : !showLoadingState ? (
               asnPage?.items.map((item) => (
                 <div
                   class={`preview-label${item.isTightFit ? " preview-label--tight" : ""}`}
@@ -278,7 +258,14 @@ export function PreviewPanel({
                   </div>
                 </div>
               ))
-            )}
+            ) : null
+            }
+
+            {showLoadingState ? (
+              <div class="preview-loading" aria-live="polite" role="status">
+                <span>{t(locale, "previewGenerating")}</span>
+              </div>
+            ) : null}
           </div>
 
           {footer}

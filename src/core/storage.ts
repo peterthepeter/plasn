@@ -1,11 +1,14 @@
 import { detectInitialLocale } from "./i18n";
 import { normalizeHexColor } from "./color";
 import {
+  clampCount,
   clampAsnDigits,
+  normalizeCountInput,
   normalizeAsnPrefix,
   normalizeSeparatorBarcodeValue,
   normalizeSeparatorFreeText,
   normalizeSeparatorHeadline,
+  normalizeStartPosition,
 } from "./limits";
 import { createDefaultCustomPreset, PRESET_LIBRARY } from "./presets";
 import type {
@@ -113,6 +116,12 @@ export function loadSettings(): AppSettings {
       ...createDefaultSettings(),
       ...parsed,
       prefix: normalizeAsnPrefix(parsed.prefix ?? createDefaultSettings().prefix),
+      startPosition: normalizeStartPosition(
+        parsed.startPosition ?? createDefaultSettings().startPosition,
+      ),
+      count: clampCount(
+        Number(normalizeCountInput(String(parsed.count ?? ""))) || undefined,
+      ),
       digits: clampAsnDigits(parsed.digits ?? createDefaultSettings().digits),
       separatorBarcodeValue: normalizeSeparatorBarcodeValue(
         parsed.separatorBarcodeValue ??

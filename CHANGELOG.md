@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2026-04-09
+
+### Added
+- Multi-page ASN generation with an explicit `Pages` control for up to 10 pages
+- Inline page navigation next to the print action for generated multi-page previews
+- Reusable PDF warmup and caching so repeated PDF downloads feel much more immediate
+
+### Changed
+- Refined the preview action area, loading states, and left-hand setup/calibration panels for a cleaner workflow
+- Simplified calibration profile handling by moving new-profile creation into the profile selector and only showing the name field for custom profiles
+- PDF downloads now produce a single multi-page file again, while print continues to target the currently visible page
+- Numeric setup inputs now use stricter limits and clearer stepper-based controls, including the new pages field
+
+### Fixed
+- Start position now behaves consistently with multi-page generation and no longer causes accidental page-count jumps while typing
+- QR, print, and PDF generation paths now avoid unnecessary duplicate work and export much faster on large sheets
+- Preview loading now shows a clean transient state instead of exposing partially rendered content
+- Color menus, preview action alignment, and active button treatments now stay visually consistent across the interface
+
 ## [0.2.0] - 2026-04-07
 
 ### Added

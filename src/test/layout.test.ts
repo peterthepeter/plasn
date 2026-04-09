@@ -41,7 +41,7 @@ describe("generateLayout", () => {
     expect(layout.resolvedEndNumber).toBe(30);
   });
 
-  it("supports row:column start positions", () => {
+  it("flags non-numeric start positions as invalid", () => {
     const config = makeConfig({
       startPosition: "3:2",
     });
@@ -49,10 +49,10 @@ describe("generateLayout", () => {
       config,
       createDefaultCalibrationProfile(config.presetId),
     );
-    const first = layout.pages[0].items[0];
 
-    expect(first.row).toBe(2);
-    expect(first.column).toBe(1);
+    expect(layout.warnings.some((warning) => warning.code === "invalidStartPosition")).toBe(
+      true,
+    );
   });
 
   it("uses row-wise filling when selected", () => {

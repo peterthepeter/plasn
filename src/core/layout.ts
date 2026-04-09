@@ -22,30 +22,9 @@ function makeWarning(
 function parseStartPosition(
   input: string,
   preset: LabelPreset,
-  numberingDirection: NumberingDirection,
+  _numberingDirection: NumberingDirection,
 ): { slotIndex: number; warning?: LayoutWarning } {
   const trimmed = input.trim();
-  const rowColumnMatch = /^(\d+):(\d+)$/.exec(trimmed);
-
-  if (rowColumnMatch) {
-    const row = Number(rowColumnMatch[1]);
-    const column = Number(rowColumnMatch[2]);
-    if (row < 1 || column < 1) {
-      return { slotIndex: 0, warning: makeWarning("invalidStartPosition") };
-    }
-
-    if (row > preset.rows || column > preset.columns) {
-      return { slotIndex: 0, warning: makeWarning("startPositionOutOfRange") };
-    }
-
-    const slotIndex =
-      numberingDirection === "column"
-        ? (column - 1) * preset.rows + row - 1
-        : (row - 1) * preset.columns + column - 1;
-
-    return { slotIndex };
-  }
-
   const absolute = Number(trimmed);
   if (!Number.isInteger(absolute) || absolute < 1) {
     return { slotIndex: 0, warning: makeWarning("invalidStartPosition") };

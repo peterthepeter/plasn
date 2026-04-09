@@ -1,7 +1,7 @@
 import { getRunTotalWidth } from "./code128";
 import { t } from "./i18n";
 import { getLabelTextCssFamily, getLabelTextPrintImportCss } from "./labelFonts";
-import { getQrDataUrl } from "./qr";
+import { getQrDataUrlMap } from "./qr";
 import type {
   GeneratedDocumentLayout,
   LabelTextFontFamily,
@@ -168,6 +168,15 @@ export async function printLayout(
   textFontFamily: LabelTextFontFamily,
 ): Promise<boolean> {
   try {
+    const qrDataUrlMap =
+      layout.kind === "separator"
+        ? {}
+        : await getQrDataUrlMap(
+            layout.pages.flatMap((page) =>
+              page.items.map((item) => item.encodedText),
+            ),
+            qrColor,
+          );
     const pageMarkup =
       layout.kind === "separator"
         ? layout.pages.map(
@@ -191,29 +200,24 @@ export async function printLayout(
           )
         : await Promise.all(
             layout.pages.map(async (page) => {
-              const itemMarkup = await Promise.all(
-                page.items.map(async (item) => {
-            const qr = await getQrDataUrl(item.encodedText, qrColor);
-            return `
-              <div class="label${item.isTightFit ? " tight" : ""}" style="left:${item.xMm}mm;top:${item.yMm}mm;width:${item.widthMm}mm;height:${item.heightMm}mm;">
-                ${
-                  layout.showBorders
-                    ? '<div class="label-debug" aria-hidden="true"></div>'
-                    : ""
-                }
-                <img alt="" src="${qr}" style="left:${item.qrXmm - item.xMm}mm;top:${item.qrYmm - item.yMm}mm;width:${item.qrSizeMm}mm;height:${item.qrSizeMm}mm;" />
-                <div class="label-text" style="left:${item.textXmm - item.xMm}mm;top:${item.textYmm - item.yMm}mm;width:${item.textWidthMm}mm;height:${item.textHeightMm}mm;font-size:${item.textSizeMm}mm;line-height:${item.textLineHeightMm}mm;color:${escapeHtml(textColor)};font-family:${escapeHtml(getLabelTextCssFamily(textFontFamily))};transform:scaleX(${item.textScaleX});">
-                  ${item.textLines
-                    .map(
-                      (line) =>
-                        `<span class="label-text__line">${escapeHtml(line)}</span>`,
-                    )
-                    .join("")}
+              const itemMarkup = page.items.map((item) => `
+                <div class="label${item.isTightFit ? " tight" : ""}" style="left:${item.xMm}mm;top:${item.yMm}mm;width:${item.widthMm}mm;height:${item.heightMm}mm;">
+                  ${
+                    layout.showBorders
+                      ? '<div class="label-debug" aria-hidden="true"></div>'
+                      : ""
+                  }
+                  <img alt="" src="${qrDataUrlMap[item.encodedText]}" style="left:${item.qrXmm - item.xMm}mm;top:${item.qrYmm - item.yMm}mm;width:${item.qrSizeMm}mm;height:${item.qrSizeMm}mm;" />
+                  <div class="label-text" style="left:${item.textXmm - item.xMm}mm;top:${item.textYmm - item.yMm}mm;width:${item.textWidthMm}mm;height:${item.textHeightMm}mm;font-size:${item.textSizeMm}mm;line-height:${item.textLineHeightMm}mm;color:${escapeHtml(textColor)};font-family:${escapeHtml(getLabelTextCssFamily(textFontFamily))};transform:scaleX(${item.textScaleX});">
+                    ${item.textLines
+                      .map(
+                        (line) =>
+                          `<span class="label-text__line">${escapeHtml(line)}</span>`,
+                      )
+                      .join("")}
+                  </div>
                 </div>
-              </div>
-            `;
-                }),
-              );
+              `);
 
               return `
                 <section class="sheet" style="width:${page.pageWidthMm}mm;height:${page.pageHeightMm}mm;">

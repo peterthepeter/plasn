@@ -3,7 +3,7 @@ import { getRunTotalWidth } from "./code128";
 import { hexToRgb } from "./color";
 import { t } from "./i18n";
 import { getPdfLabelFontKind } from "./labelFonts";
-import { getQrDataUrl } from "./qr";
+import { getQrDataUrlMap } from "./qr";
 import type {
   GeneratedDocumentLayout,
   LabelTextFontFamily,
@@ -164,59 +164,73 @@ export async function renderPdf(
       renderSeparatorPage(page, pageLayout, qrColor, textColorHex, font, boldFont);
     }
   } else {
+    const qrDataUrlMap = await getQrDataUrlMap(
+      layout.pages.flatMap((pageLayout) =>
+        pageLayout.items.map((item) => item.encodedText),
+      ),
+      qrColor,
+    );
+    const qrImageEntries = await Promise.all(
+      Object.entries(qrDataUrlMap).map(async ([encodedText, qrDataUrl]) => [
+        encodedText,
+        await pdf.embedPng(qrDataUrl),
+      ] as const),
+    );
+    const qrImageMap = Object.fromEntries(qrImageEntries);
+
     for (const pageLayout of layout.pages) {
       const page = pdf.addPage([mm(pageLayout.pageWidthMm), mm(pageLayout.pageHeightMm)]);
       for (const item of pageLayout.items) {
-      const qrDataUrl = await getQrDataUrl(item.encodedText, qrColor);
-      const qrImage = await pdf.embedPng(qrDataUrl);
-      const qrX = mm(item.qrXmm);
-      const qrY = mm(pageLayout.pageHeightMm - item.qrYmm - item.qrSizeMm);
-      const qrSize = mm(item.qrSizeMm);
-      const fontSize = mm(item.textSizeMm);
-      const lineHeight = mm(item.textLineHeightMm);
-      const blockHeight = fontSize + lineHeight * Math.max(item.textLines.length - 1, 0);
-      const textTop = mm(pageLayout.pageHeightMm - item.textYmm);
-      const textBoxX = mm(item.textXmm);
-      const textBoxWidth = mm(item.textWidthMm);
-      const scaledFontSize = fontSize * item.textScaleX;
-      let textY = textTop - (mm(item.textHeightMm) - blockHeight) / 2 - fontSize;
+        const qrImage = qrImageMap[item.encodedText];
+        const qrX = mm(item.qrXmm);
+        const qrY = mm(pageLayout.pageHeightMm - item.qrYmm - item.qrSizeMm);
+        const qrSize = mm(item.qrSizeMm);
+        const fontSize = mm(item.textSizeMm);
+        const lineHeight = mm(item.textLineHeightMm);
+        const blockHeight =
+          fontSize + lineHeight * Math.max(item.textLines.length - 1, 0);
+        const textTop = mm(pageLayout.pageHeightMm - item.textYmm);
+        const textBoxX = mm(item.textXmm);
+        const textBoxWidth = mm(item.textWidthMm);
+        const scaledFontSize = fontSize * item.textScaleX;
+        let textY = textTop - (mm(item.textHeightMm) - blockHeight) / 2 - fontSize;
 
-      if (layout.showBorders) {
-        page.drawRectangle({
-          x: mm(item.xMm + DEBUG_FRAME_INSET_MM),
-          y: mm(
-            pageLayout.pageHeightMm -
-              item.yMm -
-              item.heightMm +
-              DEBUG_FRAME_INSET_MM,
-          ),
-          width: mm(Math.max(0, item.widthMm - DEBUG_FRAME_INSET_MM * 2)),
-          height: mm(Math.max(0, item.heightMm - DEBUG_FRAME_INSET_MM * 2)),
-          borderColor: rgb(0.62, 0.62, 0.62),
-          borderWidth: 0.35,
-          opacity: 0.85,
+        if (layout.showBorders) {
+          page.drawRectangle({
+            x: mm(item.xMm + DEBUG_FRAME_INSET_MM),
+            y: mm(
+              pageLayout.pageHeightMm -
+                item.yMm -
+                item.heightMm +
+                DEBUG_FRAME_INSET_MM,
+            ),
+            width: mm(Math.max(0, item.widthMm - DEBUG_FRAME_INSET_MM * 2)),
+            height: mm(Math.max(0, item.heightMm - DEBUG_FRAME_INSET_MM * 2)),
+            borderColor: rgb(0.62, 0.62, 0.62),
+            borderWidth: 0.35,
+            opacity: 0.85,
+          });
+        }
+
+        page.drawImage(qrImage, {
+          x: qrX,
+          y: qrY,
+          width: qrSize,
+          height: qrSize,
         });
-      }
 
-      page.drawImage(qrImage, {
-        x: qrX,
-        y: qrY,
-        width: qrSize,
-        height: qrSize,
-      });
-
-      for (const line of item.textLines) {
-        const lineWidth = font.widthOfTextAtSize(line, scaledFontSize);
-        page.drawText(line, {
-          x: textBoxX + Math.max(0, (textBoxWidth - lineWidth) / 2),
-          y: textY,
-          size: scaledFontSize,
-          font,
-          color: rgb(textColor.r / 255, textColor.g / 255, textColor.b / 255),
-        });
-        textY -= lineHeight;
+        for (const line of item.textLines) {
+          const lineWidth = font.widthOfTextAtSize(line, scaledFontSize);
+          page.drawText(line, {
+            x: textBoxX + Math.max(0, (textBoxWidth - lineWidth) / 2),
+            y: textY,
+            size: scaledFontSize,
+            font,
+            color: rgb(textColor.r / 255, textColor.g / 255, textColor.b / 255),
+          });
+          textY -= lineHeight;
+        }
       }
-    }
     }
   }
 
