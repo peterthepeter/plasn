@@ -1829,7 +1829,7 @@ export function App() {
               textColor={activeTextColor}
               textFontFamily={generatedSettings?.textFontFamily ?? settings.textFontFamily}
               footer={
-                <div class="output-panel">
+                <div class="output-panel output-panel--preview-note">
                   <div class="source-panel source-panel--plain">
                     <strong>{t(settings.locale, "outputPrintScaleTitle")}</strong>
                     <span>{t(settings.locale, "outputPrintScaleBody")}</span>

@@ -139,6 +139,8 @@ export function PreviewPanel({
             </span>
           </div>
 
+          {footer}
+
           <div
             class={`preview-page${showLoadingState ? " preview-page--loading" : ""}`}
             style={{
@@ -267,8 +269,6 @@ export function PreviewPanel({
               </div>
             ) : null}
           </div>
-
-          {footer}
         </div>
       </div>
     </div>

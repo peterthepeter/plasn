@@ -1786,6 +1786,15 @@ textarea {
   margin-top: 0.75rem;
 }
 
+.output-panel--preview-note {
+  margin: 0 0 0.68rem;
+}
+
+.output-panel--preview-note .source-panel--plain strong,
+.output-panel--preview-note .source-panel--plain span {
+  color: #ffffff;
+}
+
 .output-panel__meta {
   margin: 0;
   color: var(--on-surface-variant);
