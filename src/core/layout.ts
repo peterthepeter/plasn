@@ -1,4 +1,5 @@
 import { getPresetById } from "./presets";
+import { clampCalibrationQrScalePercent } from "./limits";
 import type {
   CalibrationProfile,
   GeneratedLayout,
@@ -233,9 +234,13 @@ export function generateLayout(
         preset.labelHeightMm * preset.qrScale,
       ),
     );
-    const qrXmm = xMm + preset.innerPaddingMm;
-    const qrYmm = yMm + (preset.labelHeightMm - qrSizeMm) / 2;
-    const textXmm = qrXmm + qrSizeMm + preset.textGapMm;
+    const qrScaleFactor =
+      clampCalibrationQrScalePercent(calibrationProfile.qrScalePercent) / 100;
+    const scaledQrSizeMm = qrSizeMm * qrScaleFactor;
+    const qrBoxXmm = xMm + preset.innerPaddingMm;
+    const qrXmm = qrBoxXmm + (qrSizeMm - scaledQrSizeMm) / 2;
+    const qrYmm = yMm + (preset.labelHeightMm - scaledQrSizeMm) / 2;
+    const textXmm = qrBoxXmm + qrSizeMm + preset.textGapMm;
     const textWidthMm =
       preset.labelWidthMm - preset.innerPaddingMm * 2 - qrSizeMm - preset.textGapMm;
     const textHeightMm = preset.labelHeightMm - preset.innerPaddingMm * 2;
@@ -267,7 +272,7 @@ export function generateLayout(
       heightMm: preset.labelHeightMm,
       qrXmm,
       qrYmm,
-      qrSizeMm,
+      qrSizeMm: scaledQrSizeMm,
       textXmm,
       textYmm: yMm + preset.innerPaddingMm,
       textOffsetMm,

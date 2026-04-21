@@ -88,6 +88,9 @@ const dictionaries: Record<Locale, Dictionary> = {
     calibrationHelpPitchTitle: "Pitch adjust X/Y",
     calibrationHelpPitchBody:
       "Changes the distance between labels. Use this when the first label looks fine but the error gets larger across rows or columns.",
+    calibrationHelpQrScaleTitle: "QR code size",
+    calibrationHelpQrScaleBody:
+      "Shrinks only the QR code inside its existing space, so the visible text stays exactly where it is. Smaller QR codes leave more edge tolerance, but can be harder to detect depending on printer, scanner, and Paperless-ngx recognition.",
     calibrationHelpExampleTitle: "Quick rule of thumb",
     calibrationHelpExampleBody:
       "Everything is equally offset: use Offset. The drift grows from label to label: use Pitch adjust.",
@@ -135,6 +138,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     fieldOffsetY: "Offset Y (mm)",
     fieldPitchX: "Pitch X (mm)",
     fieldPitchY: "Pitch Y (mm)",
+    fieldCalibrationQrScale: "QR code size (85-100%)",
     fieldProfileName: "Name",
     optionColumnShort: "Column-first",
     optionRowShort: "Row-first",
@@ -155,6 +159,8 @@ const dictionaries: Record<Locale, Dictionary> = {
       "If this differs from ASN, update Paperless-ngx accordingly.",
     hintCalibration:
       "Use debug borders plus tiny offsets when your printer drifts off the sheet.",
+    hintCalibrationQrScale:
+      "Shrinks only the QR code; text stays unchanged. Smaller QR codes leave more edge tolerance, but can be harder to detect.",
     hintCustom:
       "These measurements drive preview, PDF, and print from the same geometry model.",
     hintSeparatorFreeText:
@@ -329,6 +335,9 @@ const dictionaries: Record<Locale, Dictionary> = {
     calibrationHelpPitchTitle: "Pitch-Korrektur X/Y",
     calibrationHelpPitchBody:
       "Ändert den Abstand zwischen den Etiketten. Das nutzt du, wenn das erste Etikett gut aussieht, der Fehler aber über Zeilen oder Spalten immer größer wird.",
+    calibrationHelpQrScaleTitle: "QR-Code-Größe",
+    calibrationHelpQrScaleBody:
+      "Verkleinert nur den QR-Code innerhalb seines bisherigen Bereichs, damit der sichtbare Text exakt an derselben Stelle bleibt. Kleinere QR-Codes lassen mehr Abstand zur Etikettenkante, können je nach Drucker, Scanner und Paperless-ngx-Erkennung aber unzuverlässiger gelesen werden.",
     calibrationHelpExampleTitle: "Faustregel",
     calibrationHelpExampleBody:
       "Alles ist gleich verschoben: Offset. Der Fehler wird von Etikett zu Etikett größer: Pitch-Korrektur.",
@@ -376,6 +385,7 @@ const dictionaries: Record<Locale, Dictionary> = {
     fieldOffsetY: "Offset Y (mm)",
     fieldPitchX: "Pitch X (mm)",
     fieldPitchY: "Pitch Y (mm)",
+    fieldCalibrationQrScale: "QR-Code-Größe (85-100 %)",
     fieldProfileName: "Name",
     optionColumnShort: "Spalten zuerst",
     optionRowShort: "Zeilen zuerst",
@@ -396,6 +406,8 @@ const dictionaries: Record<Locale, Dictionary> = {
       "Falls dies nicht ASN ist, muss der Wert in Paperless-ngx ebenfalls angepasst werden.",
     hintCalibration:
       "Nutze Debug-Rahmen und kleine Offsets, wenn dein Drucker leicht vom Bogen abweicht.",
+    hintCalibrationQrScale:
+      "Verkleinert nur den QR-Code; der Text bleibt unverändert. Kleinere QR-Codes lassen mehr Rand, können aber unzuverlässiger erkannt werden.",
     hintCustom:
       "Diese Maße steuern Vorschau, PDF und Druck über dasselbe Geometriemodell.",
     hintSeparatorFreeText:

@@ -8,6 +8,8 @@ export const MAX_START_POSITION_LENGTH = 3;
 export const MAX_SEPARATOR_BARCODE_LENGTH = 20;
 export const MAX_SEPARATOR_HEADLINE_LENGTH = 40;
 export const MAX_SEPARATOR_FREE_TEXT_LENGTH = 200;
+export const MIN_CALIBRATION_QR_SCALE_PERCENT = 85;
+export const MAX_CALIBRATION_QR_SCALE_PERCENT = 100;
 
 export function clampAsnDigits(value: number): number {
   if (!Number.isFinite(value)) {
@@ -59,4 +61,15 @@ export function normalizeSeparatorHeadline(value: string): string {
 
 export function normalizeSeparatorFreeText(value: string): string {
   return value.slice(0, MAX_SEPARATOR_FREE_TEXT_LENGTH);
+}
+
+export function clampCalibrationQrScalePercent(value: number): number {
+  if (!Number.isFinite(value)) {
+    return MAX_CALIBRATION_QR_SCALE_PERCENT;
+  }
+
+  return Math.min(
+    MAX_CALIBRATION_QR_SCALE_PERCENT,
+    Math.max(MIN_CALIBRATION_QR_SCALE_PERCENT, Math.round(value)),
+  );
 }

@@ -1,5 +1,10 @@
 import { NumberInput } from "./NumberInput";
 import { t } from "../core/i18n";
+import {
+  MAX_CALIBRATION_QR_SCALE_PERCENT,
+  MIN_CALIBRATION_QR_SCALE_PERCENT,
+  clampCalibrationQrScalePercent,
+} from "../core/limits";
 import type { CalibrationProfile, Locale } from "../core/types";
 
 const NEW_PROFILE_OPTION_VALUE = "__new_profile__";
@@ -164,7 +169,23 @@ export function CalibrationPanel({
             value={selectedProfile.pitchAdjustYMm}
           />
         </label>
-        <label class="field field--compact">
+        <label class="field field--compact calibration-control--qr-scale">
+          <span>{t(locale, "fieldCalibrationQrScale")}</span>
+          <NumberInput
+            max={MAX_CALIBRATION_QR_SCALE_PERCENT}
+            min={MIN_CALIBRATION_QR_SCALE_PERCENT}
+            onInput={(event) =>
+              onUpdateProfile({
+                qrScalePercent: clampCalibrationQrScalePercent(
+                  Number((event.currentTarget as HTMLInputElement).value),
+                ),
+              })
+            }
+            step="1"
+            value={selectedProfile.qrScalePercent}
+          />
+        </label>
+        <label class="field field--compact calibration-control--debug-borders">
           <span>{t(locale, "fieldShowBorders")}</span>
           <button
             aria-pressed={showBorders}

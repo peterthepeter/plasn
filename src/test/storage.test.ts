@@ -16,6 +16,7 @@ describe("calibration profile import/export", () => {
         offsetYMm: 0,
         pitchAdjustXMm: 0,
         pitchAdjustYMm: 0,
+        qrScalePercent: 100,
       },
       {
         id: "laser",
@@ -25,6 +26,7 @@ describe("calibration profile import/export", () => {
         offsetYMm: -0.1,
         pitchAdjustXMm: 0,
         pitchAdjustYMm: 0.03,
+        qrScalePercent: 92,
       },
     ];
 
@@ -55,6 +57,7 @@ describe("calibration profile import/export", () => {
             offsetYMm: 0,
             pitchAdjustXMm: 0,
             pitchAdjustYMm: 0,
+            qrScalePercent: 100,
           },
         ],
       },
@@ -63,5 +66,23 @@ describe("calibration profile import/export", () => {
 
     expect(profiles[0].id).toBe("default");
     expect(profiles[1].id).toBe("test");
+  });
+
+  it("defaults older calibration profiles to full QR size", () => {
+    const legacyProfile = {
+      id: "legacy",
+      name: "Legacy",
+      presetId: "avery-l4731",
+      offsetXMm: 0,
+      offsetYMm: 0,
+      pitchAdjustXMm: 0,
+      pitchAdjustYMm: 0,
+    } as unknown as CalibrationProfile;
+    const profiles = ensureCalibrationProfiles(
+      { "avery-l4731": [legacyProfile] },
+      "avery-l4731",
+    );
+
+    expect(profiles[1].qrScalePercent).toBe(100);
   });
 });

@@ -327,6 +327,7 @@ function buildGenerationKey(
       offsetYMm: profile.offsetYMm,
       pitchAdjustXMm: profile.pitchAdjustXMm,
       pitchAdjustYMm: profile.pitchAdjustYMm,
+      qrScalePercent: profile.qrScalePercent,
     },
   });
 }
@@ -765,6 +766,7 @@ export function App() {
     selectedProfile.offsetYMm,
     selectedProfile.pitchAdjustXMm,
     selectedProfile.pitchAdjustYMm,
+    selectedProfile.qrScalePercent,
   ]);
 
   function updateSettings(patch: Partial<AppSettings>) {
@@ -1877,6 +1879,10 @@ export function App() {
               <div class="modal-help-block">
                 <strong>{t(settings.locale, "calibrationHelpPitchTitle")}</strong>
                 <p>{t(settings.locale, "calibrationHelpPitchBody")}</p>
+              </div>
+              <div class="modal-help-block">
+                <strong>{t(settings.locale, "calibrationHelpQrScaleTitle")}</strong>
+                <p>{t(settings.locale, "calibrationHelpQrScaleBody")}</p>
               </div>
               <div class="modal-help-block">
                 <strong>{t(settings.locale, "calibrationHelpExampleTitle")}</strong>

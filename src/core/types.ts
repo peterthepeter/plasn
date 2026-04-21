@@ -39,6 +39,7 @@ export interface CalibrationProfile {
   offsetYMm: number;
   pitchAdjustXMm: number;
   pitchAdjustYMm: number;
+  qrScalePercent: number;
 }
 
 export interface GeneratorConfig {

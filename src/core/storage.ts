@@ -9,6 +9,7 @@ import {
   normalizeSeparatorFreeText,
   normalizeSeparatorHeadline,
   normalizeStartPosition,
+  clampCalibrationQrScalePercent,
 } from "./limits";
 import { createDefaultCustomPreset, PRESET_LIBRARY } from "./presets";
 import type {
@@ -46,8 +47,18 @@ function isCalibrationProfile(value: unknown): value is CalibrationProfile {
     typeof candidate.pitchAdjustXMm === "number" &&
     Number.isFinite(candidate.pitchAdjustXMm) &&
     typeof candidate.pitchAdjustYMm === "number" &&
-    Number.isFinite(candidate.pitchAdjustYMm)
+    Number.isFinite(candidate.pitchAdjustYMm) &&
+    (candidate.qrScalePercent === undefined ||
+      (typeof candidate.qrScalePercent === "number" &&
+        Number.isFinite(candidate.qrScalePercent)))
   );
+}
+
+function normalizeCalibrationProfile(profile: CalibrationProfile): CalibrationProfile {
+  return {
+    ...profile,
+    qrScalePercent: clampCalibrationQrScalePercent(profile.qrScalePercent ?? 100),
+  };
 }
 
 export function createDefaultCalibrationProfile(
@@ -61,6 +72,7 @@ export function createDefaultCalibrationProfile(
     offsetYMm: 0,
     pitchAdjustXMm: 0,
     pitchAdjustYMm: 0,
+    qrScalePercent: 100,
   };
 }
 
@@ -208,9 +220,14 @@ export function ensureCalibrationProfiles(
           offsetYMm: storedDefaultProfile.offsetYMm,
           pitchAdjustXMm: storedDefaultProfile.pitchAdjustXMm,
           pitchAdjustYMm: storedDefaultProfile.pitchAdjustYMm,
+          qrScalePercent: clampCalibrationQrScalePercent(
+            storedDefaultProfile.qrScalePercent,
+          ),
         }
       : createDefaultCalibrationProfile(presetId);
-    const remainingProfiles = profiles.filter((profile) => profile.id !== "default");
+    const remainingProfiles = profiles
+      .filter((profile) => profile.id !== "default")
+      .map(normalizeCalibrationProfile);
 
     return [defaultProfile, ...remainingProfiles];
   }
@@ -264,7 +281,7 @@ export function parseCalibrationProfilesImport(
       version: parsed.version,
       presetId: parsed.presetId,
       selectedProfileId: parsed.selectedProfileId,
-      profiles: parsed.profiles,
+      profiles: parsed.profiles.map(normalizeCalibrationProfile),
     };
   } catch {
     return null;

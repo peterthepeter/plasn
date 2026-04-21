@@ -103,6 +103,24 @@ describe("generateLayout", () => {
     expect(layout.pages[0].items[0].textOffsetMm).toBeGreaterThan(0);
   });
 
+  it("shrinks QR codes without moving the text block", () => {
+    const config = makeConfig({ count: 1 });
+    const defaultProfile = createDefaultCalibrationProfile(config.presetId);
+    const defaultLayout = generateLayout(config, defaultProfile);
+    const scaledLayout = generateLayout(config, {
+      ...defaultProfile,
+      qrScalePercent: 90,
+    });
+    const defaultItem = defaultLayout.pages[0].items[0];
+    const scaledItem = scaledLayout.pages[0].items[0];
+
+    expect(scaledItem.qrSizeMm).toBeCloseTo(defaultItem.qrSizeMm * 0.9);
+    expect(scaledItem.qrXmm).toBeGreaterThan(defaultItem.qrXmm);
+    expect(scaledItem.textXmm).toBe(defaultItem.textXmm);
+    expect(scaledItem.textYmm).toBe(defaultItem.textYmm);
+    expect(scaledItem.textWidthMm).toBe(defaultItem.textWidthMm);
+  });
+
   it("limits ASN digits and prefix length", () => {
     expect(clampAsnDigits(9)).toBe(7);
     expect(clampAsnDigits(0)).toBe(1);
