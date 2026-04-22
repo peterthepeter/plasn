@@ -12,6 +12,7 @@ import type {
 } from "./types";
 
 const MIN_TEXT_SIZE_WARNING_MARGIN = 0.15;
+const BASE_QR_SIZE_FACTOR = 0.99;
 
 function makeWarning(
   code: LayoutWarning["code"],
@@ -236,7 +237,7 @@ export function generateLayout(
     );
     const qrScaleFactor =
       clampCalibrationQrScalePercent(calibrationProfile.qrScalePercent) / 100;
-    const scaledQrSizeMm = qrSizeMm * qrScaleFactor;
+    const scaledQrSizeMm = qrSizeMm * BASE_QR_SIZE_FACTOR * qrScaleFactor;
     const qrBoxXmm = xMm + preset.innerPaddingMm;
     const qrXmm = qrBoxXmm + (qrSizeMm - scaledQrSizeMm) / 2;
     const qrYmm = yMm + (preset.labelHeightMm - scaledQrSizeMm) / 2;

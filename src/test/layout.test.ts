@@ -121,6 +121,21 @@ describe("generateLayout", () => {
     expect(scaledItem.textWidthMm).toBe(defaultItem.textWidthMm);
   });
 
+  it("uses a one percent smaller base QR size", () => {
+    const config = makeConfig({ count: 1 });
+    const layout = generateLayout(
+      config,
+      createDefaultCalibrationProfile(config.presetId),
+    );
+    const preset = PRESET_LIBRARY[0];
+    const reservedQrSizeMm = Math.min(
+      preset.labelHeightMm - preset.innerPaddingMm * 2,
+      preset.labelHeightMm * preset.qrScale,
+    );
+
+    expect(layout.pages[0].items[0].qrSizeMm).toBeCloseTo(reservedQrSizeMm * 0.99);
+  });
+
   it("limits ASN digits and prefix length", () => {
     expect(clampAsnDigits(9)).toBe(7);
     expect(clampAsnDigits(0)).toBe(1);
