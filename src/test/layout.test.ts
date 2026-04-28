@@ -7,6 +7,7 @@ import type { GeneratorConfig } from "../core/types";
 function makeConfig(overrides: Partial<GeneratorConfig> = {}): GeneratorConfig {
   return {
     locale: "en",
+    themeMode: "system",
     startNumber: 1,
     count: 10,
     prefix: "ASN",

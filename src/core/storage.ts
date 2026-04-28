@@ -81,6 +81,7 @@ export function createDefaultSettings(): AppSettings {
 
   return {
     locale: detectInitialLocale(),
+    themeMode: "system",
     generatorMode: "asn",
     startNumber: 1,
     count: preset.columns * preset.rows,
@@ -127,6 +128,12 @@ export function loadSettings(): AppSettings {
     return {
       ...createDefaultSettings(),
       ...parsed,
+      themeMode:
+        parsed.themeMode === "light" ||
+        parsed.themeMode === "dark" ||
+        parsed.themeMode === "system"
+          ? parsed.themeMode
+          : createDefaultSettings().themeMode,
       prefix: normalizeAsnPrefix(parsed.prefix ?? createDefaultSettings().prefix),
       startPosition: normalizeStartPosition(
         parsed.startPosition ?? createDefaultSettings().startPosition,

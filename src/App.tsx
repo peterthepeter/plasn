@@ -52,6 +52,7 @@ import type {
   Locale,
   SeparatorConfig,
   SeparatorPaperSize,
+  ThemeMode,
 } from "./core/types";
 
 const REPOSITORY_URL = "https://github.com/peterthepeter/plasn";
@@ -285,6 +286,35 @@ function getSeparatorPaperLabel(locale: Locale, paperSize: SeparatorPaperSize): 
     : t(locale, "optionPaperA4");
 }
 
+function resolveThemeMode(themeMode: ThemeMode): "light" | "dark" {
+  if (themeMode === "light" || themeMode === "dark") {
+    return themeMode;
+  }
+
+  if (
+    typeof window === "undefined" ||
+    typeof window.matchMedia !== "function"
+  ) {
+    return "dark";
+  }
+
+  return window.matchMedia("(prefers-color-scheme: light)").matches
+    ? "light"
+    : "dark";
+}
+
+function getNextThemeMode(themeMode: ThemeMode): ThemeMode {
+  if (themeMode === "system") {
+    return "light";
+  }
+
+  if (themeMode === "light") {
+    return "dark";
+  }
+
+  return "system";
+}
+
 function slugifyValue(value: string): string {
   const normalized = value.trim().toLowerCase().replaceAll(/[^a-z0-9]+/g, "-");
   return normalized.replaceAll(/^-+|-+$/g, "") || "separator";
@@ -362,6 +392,84 @@ function GlobeIcon({ class: className }: IconProps) {
         stroke-linecap="round"
         stroke-linejoin="round"
         stroke-width="1.6"
+      />
+    </svg>
+  );
+}
+
+function ThemeModeIcon({
+  class: className,
+  mode,
+}: IconProps & { mode: ThemeMode }) {
+  if (mode === "light") {
+    return (
+      <svg
+        aria-hidden="true"
+        class={className}
+        fill="none"
+        viewBox="0 0 20 20"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <circle cx="10" cy="10" r="3.25" stroke="currentColor" stroke-width="1.6" />
+        <path
+          d="M10 2.75v2.1M10 15.15v2.1M17.25 10h-2.1M4.85 10h-2.1M15.12 4.88l-1.48 1.48M6.36 13.64l-1.48 1.48M15.12 15.12l-1.48-1.48M6.36 6.36 4.88 4.88"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-width="1.6"
+        />
+      </svg>
+    );
+  }
+
+  if (mode === "dark") {
+    return (
+      <svg
+        aria-hidden="true"
+        class={className}
+        fill="none"
+        viewBox="0 0 20 20"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M12.85 3.45a6.45 6.45 0 1 0 3.7 11.74 6.7 6.7 0 0 1-2.3.41 6.6 6.6 0 0 1-6.6-6.6c0-.82.15-1.62.42-2.36a6.44 6.44 0 0 0 4.78-3.19Z"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.6"
+        />
+      </svg>
+    );
+  }
+
+  return (
+    <svg
+      aria-hidden="true"
+      class={className}
+      fill="none"
+      viewBox="0 0 20 20"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <rect
+        x="3.25"
+        y="4"
+        width="13.5"
+        height="9.2"
+        rx="2"
+        stroke="currentColor"
+        stroke-width="1.6"
+      />
+      <path
+        d="M7.25 16h5.5M10 13.2V16"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-width="1.6"
+      />
+      <circle cx="13.5" cy="7.6" r="1.35" stroke="currentColor" stroke-width="1.4" />
+      <path
+        d="M13.5 5.1v.7M13.5 9.4v.7M16 7.6h-.7M11.7 7.6H11"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-width="1.4"
       />
     </svg>
   );
@@ -501,6 +609,16 @@ export function App() {
   const nextLocale = settings.locale === "de" ? "en" : "de";
   const localeSwitchLabel =
     settings.locale === "de" ? "Switch to English" : "Zu Deutsch wechseln";
+  const themeLabels: Record<ThemeMode, string> = {
+    system: t(settings.locale, "themeSystem"),
+    light: t(settings.locale, "themeLight"),
+    dark: t(settings.locale, "themeDark"),
+  };
+  const nextThemeMode = getNextThemeMode(settings.themeMode);
+  const themeSwitchLabel =
+    settings.locale === "de"
+      ? `Farbschema: ${themeLabels[settings.themeMode]}. Wechselt zu ${themeLabels[nextThemeMode]}.`
+      : `Theme: ${themeLabels[settings.themeMode]}. Switches to ${themeLabels[nextThemeMode]}.`;
   const profileImportRef = useRef<HTMLInputElement | null>(null);
   const profileActionsRef = useRef<HTMLDivElement | null>(null);
   const cachedPdfRef = useRef<PdfCacheEntry | null>(null);
@@ -712,6 +830,40 @@ export function App() {
   useEffect(() => {
     saveCalibrationProfiles(allProfiles);
   }, [allProfiles]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
+
+    const root = document.documentElement;
+    const mediaQuery =
+      typeof window !== "undefined" && typeof window.matchMedia === "function"
+        ? window.matchMedia("(prefers-color-scheme: light)")
+        : null;
+
+    const applyTheme = () => {
+      const resolvedTheme = resolveThemeMode(settings.themeMode);
+      root.dataset.theme = resolvedTheme;
+      root.style.colorScheme = resolvedTheme;
+    };
+
+    applyTheme();
+
+    if (settings.themeMode !== "system" || !mediaQuery) {
+      return;
+    }
+
+    const handleChange = () => applyTheme();
+
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", handleChange);
+      return () => mediaQuery.removeEventListener("change", handleChange);
+    }
+
+    mediaQuery.addListener(handleChange);
+    return () => mediaQuery.removeListener(handleChange);
+  }, [settings.themeMode]);
 
   useEffect(() => {
     setQrColorDraft(settings.qrColor);
@@ -1160,16 +1312,32 @@ export function App() {
               </p>
             </div>
           </div>
-          <div class="locale-switcher" aria-label={t(settings.locale, "fieldLanguage")}>
-            <button
-              aria-label={localeSwitchLabel}
-              class="locale-switcher__button locale-switcher__button--icon locale-switcher__button--active"
-              onClick={() => updateSettings({ locale: nextLocale })}
-              title={localeSwitchLabel}
-              type="button"
-            >
-              <GlobeIcon class="locale-switcher__icon" />
-            </button>
+          <div class="topbar__controls">
+            <div class="locale-switcher" aria-label={t(settings.locale, "fieldTheme")}>
+              <button
+                aria-label={themeSwitchLabel}
+                class="locale-switcher__button locale-switcher__button--icon locale-switcher__button--active"
+                onClick={() => updateSettings({ themeMode: nextThemeMode })}
+                title={themeSwitchLabel}
+                type="button"
+              >
+                <ThemeModeIcon
+                  class="locale-switcher__icon"
+                  mode={settings.themeMode}
+                />
+              </button>
+            </div>
+            <div class="locale-switcher" aria-label={t(settings.locale, "fieldLanguage")}>
+              <button
+                aria-label={localeSwitchLabel}
+                class="locale-switcher__button locale-switcher__button--icon locale-switcher__button--active"
+                onClick={() => updateSettings({ locale: nextLocale })}
+                title={localeSwitchLabel}
+                type="button"
+              >
+                <GlobeIcon class="locale-switcher__icon" />
+              </button>
+            </div>
           </div>
         </div>
 

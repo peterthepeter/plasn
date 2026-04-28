@@ -8,6 +8,7 @@ describe("renderPdf", () => {
   it("creates a non-empty PDF blob", async () => {
     const config: GeneratorConfig = {
       locale: "en",
+      themeMode: "system",
       startNumber: 1,
       count: 2,
       prefix: "ASN",

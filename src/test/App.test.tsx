@@ -5,6 +5,8 @@ describe("App", () => {
   beforeEach(() => {
     localStorage.clear();
     window.history.replaceState({}, "", "/");
+    delete document.documentElement.dataset.theme;
+    document.documentElement.style.colorScheme = "";
   });
 
   it("switches between english and german copy", () => {
@@ -210,5 +212,24 @@ describe("App", () => {
     expect(
       screen.getByRole("button", { name: /Download PDF|PDF herunterladen/i }),
     ).toBeInTheDocument();
+  });
+
+  it("switches to light theme and persists the choice", () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: /^Theme: Auto/i }));
+
+    expect(document.documentElement.dataset.theme).toBe("light");
+    expect(document.documentElement.style.colorScheme).toBe("light");
+    expect(localStorage.getItem("plasn.settings.v1")).toContain('"themeMode":"light"');
+  });
+
+  it("loads a stored dark theme selection on startup", () => {
+    localStorage.setItem("plasn.settings.v1", JSON.stringify({ themeMode: "dark" }));
+
+    render(<App />);
+
+    expect(document.documentElement.dataset.theme).toBe("dark");
+    expect(screen.getByRole("button", { name: /^Theme: Dark/i })).toBeInTheDocument();
   });
 });

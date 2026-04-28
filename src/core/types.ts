@@ -2,6 +2,7 @@ export type Locale = "de" | "en";
 export type GeneratorMode = "asn" | "separator";
 export type SeparatorPaperSize = "a4" | "letter";
 export type LabelTextFontFamily = "helvetica" | "source_code_pro" | "jetbrains_mono";
+export type ThemeMode = "system" | "light" | "dark";
 
 export type NumberingDirection = "column" | "row";
 
@@ -44,6 +45,7 @@ export interface CalibrationProfile {
 
 export interface GeneratorConfig {
   locale: Locale;
+  themeMode: ThemeMode;
   startNumber: number;
   endNumber?: number;
   count?: number;
