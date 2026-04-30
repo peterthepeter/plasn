@@ -1,4 +1,4 @@
-import { PDFDocument, PDFPage, PDFFont, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument, PDFPage, PDFFont, StandardFonts, degrees, rgb } from "pdf-lib";
 import { getRunTotalWidth } from "./code128";
 import { hexToRgb } from "./color";
 import { t } from "./i18n";
@@ -17,6 +17,25 @@ const DEBUG_FRAME_INSET_MM = 0.18;
 
 function mm(value: number): number {
   return value * MM_TO_PT;
+}
+
+function rotatePoint(
+  x: number,
+  y: number,
+  centerX: number,
+  centerY: number,
+  angleDeg: number,
+): { x: number; y: number } {
+  const radians = (angleDeg * Math.PI) / 180;
+  const cos = Math.cos(radians);
+  const sin = Math.sin(radians);
+  const dx = x - centerX;
+  const dy = y - centerY;
+
+  return {
+    x: centerX + dx * cos - dy * sin,
+    y: centerY + dx * sin + dy * cos,
+  };
 }
 
 function wrapText(
@@ -189,11 +208,20 @@ export async function renderPdf(
         const lineHeight = mm(item.textLineHeightMm);
         const blockHeight =
           fontSize + lineHeight * Math.max(item.textLines.length - 1, 0);
-        const textTop = mm(pageLayout.pageHeightMm - item.textYmm);
         const textBoxX = mm(item.textXmm);
+        const textBoxY = mm(pageLayout.pageHeightMm - item.textYmm - item.textHeightMm);
         const textBoxWidth = mm(item.textWidthMm);
+        const textBoxHeight = mm(item.textHeightMm);
+        const textLayoutWidth = mm(item.textLayoutWidthMm);
+        const textLayoutHeight = mm(item.textLayoutHeightMm);
+        const logicalBoxX = textBoxX + (textBoxWidth - textLayoutWidth) / 2;
+        const logicalBoxY = textBoxY + (textBoxHeight - textLayoutHeight) / 2;
+        const logicalBoxTop = logicalBoxY + textLayoutHeight;
+        const centerX = textBoxX + textBoxWidth / 2;
+        const centerY = textBoxY + textBoxHeight / 2;
         const scaledFontSize = fontSize * item.textScaleX;
-        let textY = textTop - (mm(item.textHeightMm) - blockHeight) / 2 - fontSize;
+        let textY =
+          logicalBoxTop - (textLayoutHeight - blockHeight) / 2 - fontSize;
 
         if (layout.showBorders) {
           page.drawRectangle({
@@ -221,11 +249,27 @@ export async function renderPdf(
 
         for (const line of item.textLines) {
           const lineWidth = font.widthOfTextAtSize(line, scaledFontSize);
+          const anchorX = logicalBoxX + Math.max(0, (textLayoutWidth - lineWidth) / 2);
+          const anchor =
+            item.textRotationDeg === 0
+              ? { x: anchorX, y: textY }
+              : rotatePoint(
+                  anchorX,
+                  textY,
+                  centerX,
+                  centerY,
+                  item.textRotationDeg,
+                );
+
           page.drawText(line, {
-            x: textBoxX + Math.max(0, (textBoxWidth - lineWidth) / 2),
-            y: textY,
+            x: anchor.x,
+            y: anchor.y,
             size: scaledFontSize,
             font,
+            rotate:
+              item.textRotationDeg === 0
+                ? undefined
+                : degrees(item.textRotationDeg),
             color: rgb(textColor.r / 255, textColor.g / 255, textColor.b / 255),
           });
           textY -= lineHeight;

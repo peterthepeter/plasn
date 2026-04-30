@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- Provisional `Avery Zweckform L4730` support for `17,8 x 10 mm` ASN labels with `270` labels per A4 sheet
+
+### Changed
+- Narrow label layouts can now use a smaller text floor and a `90°` rotated text block so compact ASN labels stay readable in preview and PDF export
+
 ## [0.3.0] - 2026-04-09
 
 ### Added

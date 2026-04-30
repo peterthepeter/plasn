@@ -137,6 +137,28 @@ describe("generateLayout", () => {
     expect(layout.pages[0].items[0].qrSizeMm).toBeCloseTo(reservedQrSizeMm * 0.99);
   });
 
+  it("rotates text for the L4730 preset and keeps 270 slots", () => {
+    const preset = PRESET_LIBRARY.find((entry) => entry.id === "averyL4730");
+    expect(preset).toBeDefined();
+
+    const config = makeConfig({
+      count: 1,
+      presetId: "averyL4730",
+      digits: 7,
+    });
+    const layout = generateLayout(
+      config,
+      createDefaultCalibrationProfile(config.presetId),
+    );
+    const item = layout.pages[0].items[0];
+
+    expect(layout.preset.columns * layout.preset.rows).toBe(270);
+    expect(item.textRotationDeg).toBe(-90);
+    expect(item.textLayoutWidthMm).toBeCloseTo(item.textHeightMm);
+    expect(item.textLayoutHeightMm).toBeCloseTo(item.textWidthMm);
+    expect(item.textSizeMm).toBeGreaterThanOrEqual(0.85);
+  });
+
   it("limits ASN digits and prefix length", () => {
     expect(clampAsnDigits(9)).toBe(7);
     expect(clampAsnDigits(0)).toBe(1);

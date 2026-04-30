@@ -1881,11 +1881,18 @@ textarea {
 }
 
 .preview-label__qr,
+.preview-label__text-frame,
 .preview-label__text {
   position: absolute;
 }
 
+.preview-label__text-frame {
+  overflow: hidden;
+}
+
 .preview-label__text {
+  left: 50%;
+  top: 50%;
   display: flex;
   flex-direction: column;
   justify-content: center;

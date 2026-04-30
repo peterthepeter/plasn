@@ -3,6 +3,7 @@ export type GeneratorMode = "asn" | "separator";
 export type SeparatorPaperSize = "a4" | "letter";
 export type LabelTextFontFamily = "helvetica" | "source_code_pro" | "jetbrains_mono";
 export type ThemeMode = "system" | "light" | "dark";
+export type LabelTextOrientation = "horizontal" | "rotate90";
 
 export type NumberingDirection = "column" | "row";
 
@@ -29,6 +30,7 @@ export interface LabelPreset {
   textGapMm: number;
   minTextSizeMm: number;
   maxTextSizeMm: number;
+  textOrientation?: LabelTextOrientation;
   isCustom?: boolean;
 }
 
@@ -109,9 +111,12 @@ export interface LabelItem {
   textOffsetMm: number;
   textWidthMm: number;
   textHeightMm: number;
+  textLayoutWidthMm: number;
+  textLayoutHeightMm: number;
   textSizeMm: number;
   textLineHeightMm: number;
   textScaleX: number;
+  textRotationDeg: number;
   isTightFit: boolean;
 }
 

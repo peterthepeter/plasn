@@ -6,6 +6,7 @@ import type {
   GeneratorConfig,
   LabelItem,
   LabelPreset,
+  LabelTextOrientation,
   LayoutWarning,
   NumberingDirection,
   PageLayout,
@@ -13,6 +14,7 @@ import type {
 
 const MIN_TEXT_SIZE_WARNING_MARGIN = 0.15;
 const BASE_QR_SIZE_FACTOR = 0.99;
+const ABSOLUTE_MIN_TEXT_SIZE_MM = 0.85;
 
 function makeWarning(
   code: LayoutWarning["code"],
@@ -114,7 +116,10 @@ function fitTextBlockSizeMm(
   const heightFactor = lineCount === 1 ? 0.64 : 1 / (lineCount * 0.92);
   const heightBased = textHeightMm * heightFactor;
   const candidate = Math.min(widthBased, heightBased, preset.maxTextSizeMm);
-  const sizeMm = Math.max(1.2, Math.min(candidate, preset.maxTextSizeMm));
+  const sizeMm = Math.max(
+    ABSOLUTE_MIN_TEXT_SIZE_MM,
+    Math.min(candidate, preset.maxTextSizeMm),
+  );
   const lineHeightMm = sizeMm * (lineCount === 1 ? 1 : 0.92);
   const requiredWidth = sizeMm * Math.max(widestLine.length * widthFactor, 1);
   const textScaleX =
@@ -132,6 +137,35 @@ function fitTextBlockSizeMm(
       candidate < preset.minTextSizeMm + MIN_TEXT_SIZE_WARNING_MARGIN ||
       textScaleX < 0.96,
   };
+}
+
+function chooseTextOrientation(
+  preset: LabelPreset,
+  textWidthMm: number,
+  textHeightMm: number,
+  horizontalSizeMm: number,
+  horizontalScaleX: number,
+  horizontalIsTightFit: boolean,
+  rotatedSizeMm: number,
+  rotatedScaleX: number,
+  rotatedIsTightFit: boolean,
+): LabelTextOrientation {
+  if (preset.textOrientation) {
+    return preset.textOrientation;
+  }
+
+  if (textWidthMm > textHeightMm * 1.04) {
+    return "horizontal";
+  }
+
+  const horizontalScore = horizontalSizeMm * horizontalScaleX;
+  const rotatedScore = rotatedSizeMm * rotatedScaleX;
+
+  if (rotatedIsTightFit !== horizontalIsTightFit) {
+    return rotatedIsTightFit ? "horizontal" : "rotate90";
+  }
+
+  return rotatedScore > horizontalScore + 0.08 ? "rotate90" : "horizontal";
 }
 
 function validatePresetGeometry(preset: LabelPreset, warnings: LayoutWarning[]): void {
@@ -245,12 +279,32 @@ export function generateLayout(
     const textWidthMm =
       preset.labelWidthMm - preset.innerPaddingMm * 2 - qrSizeMm - preset.textGapMm;
     const textHeightMm = preset.labelHeightMm - preset.innerPaddingMm * 2;
-    const { sizeMm, lineHeightMm, textScaleX, textOffsetMm, isTightFit } = fitTextBlockSizeMm(
-      textLines,
+    const horizontalFit = fitTextBlockSizeMm(textLines, textWidthMm, textHeightMm, preset);
+    const rotatedFit = fitTextBlockSizeMm(textLines, textHeightMm, textWidthMm, preset);
+    const textOrientation = chooseTextOrientation(
+      preset,
       textWidthMm,
       textHeightMm,
-      preset,
+      horizontalFit.sizeMm,
+      horizontalFit.textScaleX,
+      horizontalFit.isTightFit,
+      rotatedFit.sizeMm,
+      rotatedFit.textScaleX,
+      rotatedFit.isTightFit,
     );
+    const activeFit =
+      textOrientation === "rotate90" ? rotatedFit : horizontalFit;
+    const textLayoutWidthMm =
+      textOrientation === "rotate90" ? textHeightMm : textWidthMm;
+    const textLayoutHeightMm =
+      textOrientation === "rotate90" ? textWidthMm : textHeightMm;
+    const {
+      sizeMm,
+      lineHeightMm,
+      textScaleX,
+      textOffsetMm,
+      isTightFit,
+    } = activeFit;
 
     if (isTightFit) {
       tightFitFound = true;
@@ -279,9 +333,12 @@ export function generateLayout(
       textOffsetMm,
       textWidthMm,
       textHeightMm,
+      textLayoutWidthMm,
+      textLayoutHeightMm,
       textSizeMm: sizeMm,
       textLineHeightMm: lineHeightMm,
       textScaleX,
+      textRotationDeg: textOrientation === "rotate90" ? -90 : 0,
       isTightFit,
     };
     page.items.push(item);

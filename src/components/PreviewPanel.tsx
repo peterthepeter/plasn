@@ -239,24 +239,32 @@ export function PreviewPanel({
                     }}
                   />
                   <div
-                    class="preview-label__text"
+                    class="preview-label__text-frame"
                     style={{
                       left: `${(item.textXmm - item.xMm) * scale}px`,
                       top: `${(item.textYmm - item.yMm) * scale}px`,
                       width: `${item.textWidthMm * scale}px`,
                       height: `${item.textHeightMm * scale}px`,
-                      fontSize: `${item.textSizeMm * scale}px`,
-                      lineHeight: `${item.textLineHeightMm * scale}px`,
-                      color: textColor,
-                      fontFamily: getLabelTextCssFamily(textFontFamily),
-                      transform: `scaleX(${item.textScaleX})`,
                     }}
                   >
-                    {item.textLines.map((line, index) => (
-                      <span class="preview-label__line" key={`${item.id}-${index}`}>
-                        {line}
-                      </span>
-                    ))}
+                    <div
+                      class="preview-label__text"
+                      style={{
+                        width: `${item.textLayoutWidthMm * scale}px`,
+                        height: `${item.textLayoutHeightMm * scale}px`,
+                        fontSize: `${item.textSizeMm * scale}px`,
+                        lineHeight: `${item.textLineHeightMm * scale}px`,
+                        color: textColor,
+                        fontFamily: getLabelTextCssFamily(textFontFamily),
+                        transform: `translate(-50%, -50%) rotate(${item.textRotationDeg}deg) scaleX(${item.textScaleX})`,
+                      }}
+                    >
+                      {item.textLines.map((line, index) => (
+                        <span class="preview-label__line" key={`${item.id}-${index}`}>
+                          {line}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 </div>
               ))
