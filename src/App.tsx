@@ -57,7 +57,6 @@ import type {
 
 const REPOSITORY_URL = "https://github.com/peterthepeter/plasn";
 const ISSUES_URL = "https://github.com/peterthepeter/plasn/issues";
-const ORIGINAL_PROJECT_URL = "https://github.com/tmaier/asn-qr-code-label-generator";
 
 function randomId(): string {
   return globalThis.crypto?.randomUUID?.() ?? `id-${Date.now()}`;
@@ -2286,12 +2285,6 @@ export function App() {
               {t(settings.locale, "footerIssues")}
             </a>
           </div>
-          <p>
-            {t(settings.locale, "footerCredit")}{" "}
-            <a href={ORIGINAL_PROJECT_URL} rel="noreferrer" target="_blank">
-              GitHub
-            </a>
-          </p>
         </div>
       </footer>
     </div>

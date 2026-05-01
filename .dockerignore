@@ -2,3 +2,11 @@ node_modules
 dist
 .DS_Store
 *.log
+.git
+.github
+.env
+.env.*
+coverage
+LOCAL_INFRA.md
+CHANGELOG.md
+DESIGN.md

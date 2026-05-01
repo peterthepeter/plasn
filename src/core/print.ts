@@ -1,6 +1,6 @@
 import { getRunTotalWidth } from "./code128";
 import { t } from "./i18n";
-import { getLabelTextCssFamily, getLabelTextPrintImportCss } from "./labelFonts";
+import { getLabelTextCssFamily, getLabelTextPrintFontFaceCss } from "./labelFonts";
 import { getQrDataUrlMap } from "./qr";
 import type {
   GeneratedDocumentLayout,
@@ -30,7 +30,7 @@ function buildPrintDocument(
         <meta charset="utf-8" />
         <title>${escapeHtml(t(locale, "printWindowTitle"))}</title>
         <style>
-          ${getLabelTextPrintImportCss()}
+          ${getLabelTextPrintFontFaceCss()}
           @page {
             size: ${layout.pages[0]?.pageWidthMm ?? 210}mm ${layout.pages[0]?.pageHeightMm ?? 297}mm;
             margin: 0;

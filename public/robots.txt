@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://plasn.getathome.dedyn.io/sitemap.xml

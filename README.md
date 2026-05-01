@@ -98,6 +98,24 @@ PAPERLESS_CONSUMER_BARCODE_DPI=600
 PAPERLESS_CONSUMER_BARCODE_UPSCALE=1.5
 ```
 
+## Public container image
+
+Plasn is also available as a public container image for self-hosted and offline-friendly deployments:
+
+```bash
+docker pull ghcr.io/peterthepeter/plasn-public:latest
+docker run --rm -p 8080:80 ghcr.io/peterthepeter/plasn-public:latest
+```
+
+After the container starts, open `http://localhost:8080`.
+
+The `plasn-public` image is intended as the generic public build:
+
+- it serves the app as a small static web container
+- it bundles the UI and print fonts locally inside the image
+- it does not require external runtime requests for fonts or analytics
+- it avoids site-specific search engine metadata so it can be reused in company and on-prem environments
+
 ## Feedback
 
 If you run into a bug or have an idea for an improvement, please open a GitHub issue.
@@ -113,9 +131,5 @@ Useful bug reports usually include:
 ## License
 
 Plasn is licensed under the GNU Affero General Public License v3.0 only (`AGPL-3.0-only`).
-
-The project acknowledges and builds on the original
-[ASN QR code label generator by Tobias L. Maier](https://github.com/tmaier/asn-qr-code-label-generator),
-which is published under the `AGPL-3.0` license.
 
 Built with the help of OpenAI Codex.
