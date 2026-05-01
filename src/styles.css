@@ -846,6 +846,7 @@ textarea {
   display: flex;
   align-items: flex-end;
   min-height: 2.2rem;
+  white-space: pre-line;
 }
 
 .info-button {

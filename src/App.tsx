@@ -843,6 +843,7 @@ export function App() {
 
     const applyTheme = () => {
       const resolvedTheme = resolveThemeMode(settings.themeMode);
+      root.lang = settings.locale;
       root.dataset.theme = resolvedTheme;
       root.style.colorScheme = resolvedTheme;
     };
@@ -862,7 +863,7 @@ export function App() {
 
     mediaQuery.addListener(handleChange);
     return () => mediaQuery.removeListener(handleChange);
-  }, [settings.themeMode]);
+  }, [settings.locale, settings.themeMode]);
 
   useEffect(() => {
     setQrColorDraft(settings.qrColor);
