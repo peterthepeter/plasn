@@ -319,6 +319,40 @@ function slugifyValue(value: string): string {
   return normalized.replaceAll(/^-+|-+$/g, "") || "separator";
 }
 
+function renderWrappedFieldLabel(
+  locale: Locale,
+  key: "fieldStartNumber" | "fieldEndNumber" | "fieldStartPosition",
+) {
+  if (locale !== "de") {
+    return t(locale, key);
+  }
+
+  if (key === "fieldStartNumber") {
+    return (
+      <>
+        Start<br />
+        nummer
+      </>
+    );
+  }
+
+  if (key === "fieldEndNumber") {
+    return (
+      <>
+        End<br />
+        nummer
+      </>
+    );
+  }
+
+  return (
+    <>
+      Start<br />
+      position
+    </>
+  );
+}
+
 function buildGenerationKey(
   settings: AppSettings,
   profile: CalibrationProfile,
@@ -1627,7 +1661,7 @@ export function App() {
               }`}
             >
               <label class="field">
-                <span>{t(settings.locale, "fieldStartNumber")}</span>
+                <span>{renderWrappedFieldLabel(settings.locale, "fieldStartNumber")}</span>
                 <NumberInput
                   min={1}
                   onInput={(event) =>
@@ -1642,7 +1676,7 @@ export function App() {
                 />
               </label>
               <label class="field">
-                <span>{t(settings.locale, "fieldEndNumber")}</span>
+                <span>{renderWrappedFieldLabel(settings.locale, "fieldEndNumber")}</span>
                 <NumberInput
                   min={settings.startNumber}
                   onInput={(event) =>
@@ -1692,7 +1726,7 @@ export function App() {
               </label>
               {configuredPageCount <= 1 ? (
                 <label class="field field--narrow">
-                  <span>{t(settings.locale, "fieldStartPosition")}</span>
+                  <span>{renderWrappedFieldLabel(settings.locale, "fieldStartPosition")}</span>
                   <input
                     inputMode="numeric"
                     maxLength={3}
