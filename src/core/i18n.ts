@@ -191,12 +191,12 @@ const dictionaries: Record<Locale, Dictionary> = {
       "Set the print dialog to 100% or Actual size and use the normal A4 print profile, not borderless A4. Do not use Fit to page or any automatic scaling.",
     paperlessSetupTitle: "Paperless-ngx setup for barcode and ASN detection",
     paperlessSetupBody:
-      "Set these environment variables in your Docker or Compose setup so Paperless-ngx reads ASN labels correctly. The ASN prefix defaults to ASN and only needs to be set explicitly if you use a different prefix.",
+      "You can set these values either in your Docker or Compose environment or directly in Paperless-ngx under Configuration. If the same option is set in the Paperless-ngx UI, that UI value takes precedence over the environment variable. The ASN prefix defaults to ASN and only needs to be set explicitly if you use a different prefix.",
     paperlessSetupRequiredTitle: "Required for ASN",
     paperlessSetupOptionalTitle:
       "Optional for a custom ASN prefix, general barcodes, and small codes",
     paperlessSetupBodySeparator:
-      "Set these environment variables in your Docker or Compose setup so Paperless-ngx separates documents using this barcode value. PATCHT is the default separator string and only needs to be set explicitly if you use a different value.",
+      "You can set these values either in your Docker or Compose environment or directly in Paperless-ngx under Configuration. If the same option is set in the Paperless-ngx UI, that UI value takes precedence over the environment variable. PATCHT is the default separator string and only needs to be set explicitly if you use a different value.",
     paperlessSetupRequiredTitleSeparator: "Required for separator sheets",
     paperlessSetupOptionalTitleSeparator:
       "Optional for a custom separator string and improved barcode detection",
@@ -440,12 +440,12 @@ const dictionaries: Record<Locale, Dictionary> = {
       "Stelle im Druckdialog unbedingt 100 % oder Tatsächliche Größe ein und nutze das normale A4-Druckprofil, nicht Randlos A4. Keine Seitenanpassung und keine automatische Skalierung verwenden.",
     paperlessSetupTitle: "Paperless-ngx Setup für Barcode- und ASN-Erkennung",
     paperlessSetupBody:
-      "Setze diese Umgebungsvariablen in deinem Docker- oder Compose-Setup, damit Paperless-ngx ASN-Etiketten korrekt erkennt. Das ASN-Präfix ist standardmäßig ASN und muss nur gesetzt werden, wenn du ein anderes Präfix verwendest.",
+      "Du kannst diese Werte entweder in deiner Docker- oder Compose-Umgebung oder direkt in Paperless-ngx unter Konfiguration setzen. Wenn dieselbe Option in der Paperless-ngx-Oberfläche gesetzt ist, hat dieser UI-Wert Vorrang vor der Umgebungsvariable. Das ASN-Präfix ist standardmäßig ASN und muss nur gesetzt werden, wenn du ein anderes Präfix verwendest.",
     paperlessSetupRequiredTitle: "Erforderlich für ASN",
     paperlessSetupOptionalTitle:
       "Optional für ein eigenes ASN-Präfix, allgemeine Barcodes und kleine Codes",
     paperlessSetupBodySeparator:
-      "Setze diese Umgebungsvariablen in deinem Docker- oder Compose-Setup, damit Paperless-ngx Dokumente mit diesem Barcode-Inhalt trennt. PATCHT ist der Standardwert für Trennblätter und muss nur gesetzt werden, wenn du einen anderen Wert verwendest.",
+      "Du kannst diese Werte entweder in deiner Docker- oder Compose-Umgebung oder direkt in Paperless-ngx unter Konfiguration setzen. Wenn dieselbe Option in der Paperless-ngx-Oberfläche gesetzt ist, hat dieser UI-Wert Vorrang vor der Umgebungsvariable. PATCHT ist der Standardwert für Trennblätter und muss nur gesetzt werden, wenn du einen anderen Wert verwendest.",
     paperlessSetupRequiredTitleSeparator: "Erforderlich für Trennblätter",
     paperlessSetupOptionalTitleSeparator:
       "Optional für einen eigenen Trennwert und für bessere Barcode-Erkennung",

@@ -67,6 +67,8 @@ The QR code still keeps the full ASN value with prefix and leading zeros; only t
 
 ## Paperless-ngx configuration
 
+You can configure these values either via environment variables or directly in the Paperless-ngx UI under Configuration. If the same option is set in the UI, the UI value takes precedence over the environment variable. The examples below are for env-based setups such as Docker, Compose, or Unraid container settings.
+
 ### ASN labels
 
 ```env
