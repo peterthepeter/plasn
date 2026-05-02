@@ -126,7 +126,7 @@ jobs:
           touch "/tmp/digests/${digest#sha256:}"
 
       - name: Upload private digest artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: private-digests-${{ steps.prep.outputs.platform_pair }}
           path: /tmp/digests/*
@@ -153,7 +153,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download private digest artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           pattern: private-digests-*
           path: /tmp/digests
@@ -233,7 +233,7 @@ jobs:
           touch "/tmp/digests/${digest#sha256:}"
 
       - name: Upload public digest artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: public-digests-${{ steps.prep.outputs.platform_pair }}
           path: /tmp/digests/*
@@ -260,7 +260,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download public digest artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           pattern: public-digests-*
           path: /tmp/digests
