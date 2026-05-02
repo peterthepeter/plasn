@@ -6,6 +6,8 @@ const dictionaries: Record<Locale, Dictionary> = {
   en: {
     appTitle: "Plasn",
     appSubtitle: "Create printable ASN label sheets and separator pages for Paperless-ngx.",
+    buttonAsnGuide: "ASN guide",
+    footerAsnGuide: "ASN label guide",
     footerGitHub: "View source on GitHub",
     footerIssues: "Report an issue",
     appTagline: "Precision ASN QR labels for Paperless-ngx.",
@@ -255,6 +257,8 @@ const dictionaries: Record<Locale, Dictionary> = {
     appTitle: "Plasn",
     appSubtitle:
       "Erzeugt druckbare ASN-Etiketten und Trennblätter für Paperless-ngx.",
+    buttonAsnGuide: "ASN-Info",
+    footerAsnGuide: "Leitfaden für ASN-Etiketten",
     footerGitHub: "Quellcode auf GitHub ansehen",
     footerIssues: "Issue melden",
     appTagline: "Präzise ASN-QR-Etiketten für Paperless-ngx.",

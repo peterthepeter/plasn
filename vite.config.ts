@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv, type Plugin } from "vite";
 import preact from "@preact/preset-vite";
+import { ASN_GUIDE_PATH, createAsnGuidePage } from "./src/seo/asnGuidePage";
 
 const GOOGLE_SITE_VERIFICATION_FILE = "googleb55a2c9f70d84e9f.html";
 
@@ -93,7 +94,26 @@ function createSiteAssetsPlugin(env: Record<string, string>): Plugin {
         this.emitFile({
           type: "asset",
           fileName: "sitemap.xml",
-          source: `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url>\n    <loc>${siteRootUrl}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>1.0</priority>\n  </url>\n</urlset>\n`,
+          source:
+            `<?xml version="1.0" encoding="UTF-8"?>\n` +
+            `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
+            `  <url>\n` +
+            `    <loc>${siteRootUrl}</loc>\n` +
+            `    <changefreq>weekly</changefreq>\n` +
+            `    <priority>1.0</priority>\n` +
+            `  </url>\n` +
+            `  <url>\n` +
+            `    <loc>${siteRootUrl}${ASN_GUIDE_PATH.slice(1)}</loc>\n` +
+            `    <changefreq>monthly</changefreq>\n` +
+            `    <priority>0.9</priority>\n` +
+            `  </url>\n` +
+            `</urlset>\n`,
+        });
+
+        this.emitFile({
+          type: "asset",
+          fileName: `${ASN_GUIDE_PATH.slice(1)}index.html`,
+          source: createAsnGuidePage(siteRootUrl),
         });
       }
 
@@ -110,9 +130,14 @@ function createSiteAssetsPlugin(env: Record<string, string>): Plugin {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
+  const siteUrl = normalizeSiteUrl(env.PLASN_SITE_URL);
+  const siteRootUrl = siteUrl ? `${siteUrl}/` : null;
 
   return {
     plugins: [preact(), createSiteAssetsPlugin(env)],
+    define: {
+      __PLASN_SEO_GUIDE_PATH__: JSON.stringify(siteRootUrl ? ASN_GUIDE_PATH : null),
+    },
     test: {
       environment: "jsdom",
       globals: true,

@@ -23,6 +23,22 @@ const SETTINGS_KEY = "plasn.settings.v1";
 const PROFILES_KEY = "plasn.calibration-profiles.v1";
 const CALIBRATION_EXPORT_VERSION = 1;
 
+function getRequestedGeneratorMode():
+  | AppSettings["generatorMode"]
+  | undefined {
+  if (typeof window === "undefined") {
+    return undefined;
+  }
+
+  const mode = new URLSearchParams(window.location.search).get("mode");
+
+  if (mode === "asn" || mode === "separator") {
+    return mode;
+  }
+
+  return undefined;
+}
+
 export interface CalibrationProfileExportPayload {
   version: number;
   presetId: string;
@@ -109,7 +125,11 @@ export function createDefaultSettings(): AppSettings {
 
 export function loadSettings(): AppSettings {
   if (typeof localStorage === "undefined") {
-    return createDefaultSettings();
+    const defaults = createDefaultSettings();
+    const requestedMode = getRequestedGeneratorMode();
+    return requestedMode
+      ? { ...defaults, generatorMode: requestedMode }
+      : defaults;
   }
 
   try {
@@ -125,9 +145,16 @@ export function loadSettings(): AppSettings {
       parsed.labelColor,
       createDefaultSettings().qrColor,
     );
+    const requestedMode = getRequestedGeneratorMode();
+
     return {
       ...createDefaultSettings(),
       ...parsed,
+      generatorMode:
+        requestedMode ??
+        (parsed.generatorMode === "asn" || parsed.generatorMode === "separator"
+          ? parsed.generatorMode
+          : createDefaultSettings().generatorMode),
       themeMode:
         parsed.themeMode === "light" ||
         parsed.themeMode === "dark" ||

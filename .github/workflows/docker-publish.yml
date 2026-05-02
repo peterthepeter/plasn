@@ -13,6 +13,16 @@ on:
       - "public/plasn-mark-256.png"
       - "public/plasn-mark.svg"
   workflow_dispatch:
+    inputs:
+      publish_target:
+        description: "Which image variant should be published?"
+        required: true
+        default: both
+        type: choice
+        options:
+          - both
+          - private
+          - public
 
 permissions:
   contents: read
@@ -46,9 +56,15 @@ jobs:
         run: npm test
 
       - name: Build public app
+        if: |
+          (github.event_name == 'push' && !contains(github.event.head_commit.message, '[private-only]')) ||
+          (github.event_name == 'workflow_dispatch' && (inputs.publish_target == 'both' || inputs.publish_target == 'public'))
         run: npm run build
 
       - name: Build private app
+        if: |
+          (github.event_name == 'push' && !contains(github.event.head_commit.message, '[public-only]')) ||
+          (github.event_name == 'workflow_dispatch' && (inputs.publish_target == 'both' || inputs.publish_target == 'private'))
         env:
           PLASN_SITE_URL: ${{ secrets.PLASN_SITE_URL }}
           VITE_CF_WEB_ANALYTICS_TOKEN: ${{ secrets.CLOUDFLARE_WEB_ANALYTICS_TOKEN }}
@@ -57,6 +73,9 @@ jobs:
   publish-private:
     name: Publish private image (${{ matrix.platform }})
     needs: test
+    if: |
+      (github.event_name == 'push' && !contains(github.event.head_commit.message, '[public-only]')) ||
+      (github.event_name == 'workflow_dispatch' && (inputs.publish_target == 'both' || inputs.publish_target == 'private'))
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -116,6 +135,9 @@ jobs:
     name: Merge private image
     runs-on: ubuntu-latest
     needs: publish-private
+    if: |
+      (github.event_name == 'push' && !contains(github.event.head_commit.message, '[public-only]')) ||
+      (github.event_name == 'workflow_dispatch' && (inputs.publish_target == 'both' || inputs.publish_target == 'private'))
 
     steps:
       - name: Set up Docker Buildx
@@ -161,6 +183,9 @@ jobs:
   publish-public:
     name: Publish public image (${{ matrix.platform }})
     needs: test
+    if: |
+      (github.event_name == 'push' && !contains(github.event.head_commit.message, '[private-only]')) ||
+      (github.event_name == 'workflow_dispatch' && (inputs.publish_target == 'both' || inputs.publish_target == 'public'))
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -217,6 +242,9 @@ jobs:
     name: Merge public image
     runs-on: ubuntu-latest
     needs: publish-public
+    if: |
+      (github.event_name == 'push' && !contains(github.event.head_commit.message, '[private-only]')) ||
+      (github.event_name == 'workflow_dispatch' && (inputs.publish_target == 'both' || inputs.publish_target == 'public'))
 
     steps:
       - name: Set up Docker Buildx

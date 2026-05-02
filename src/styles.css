@@ -685,6 +685,7 @@ textarea {
   font-weight: 560;
   line-height: 1;
   letter-spacing: 0.015em;
+  text-decoration: none;
   transition:
     color 180ms ease,
     background-color 180ms ease,
@@ -719,6 +720,7 @@ textarea {
   border-color: var(--button-flat-border-strong);
   color: var(--on-surface);
   transform: translateY(-1px);
+  text-decoration: none;
 }
 
 .mode-switcher__button--active {

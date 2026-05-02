@@ -57,6 +57,7 @@ import type {
 
 const REPOSITORY_URL = "https://github.com/peterthepeter/plasn";
 const ISSUES_URL = "https://github.com/peterthepeter/plasn/issues";
+const SEO_GUIDE_URL = __PLASN_SEO_GUIDE_PATH__;
 
 function randomId(): string {
   return globalThis.crypto?.randomUUID?.() ?? `id-${Date.now()}`;
@@ -595,6 +596,34 @@ function SeparatorSheetIcon({ class: className }: IconProps) {
       />
       <path
         d="M7.4 9.2h5.2M7.4 11.7h5.2M7.4 14.2h3.3"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-width="1.5"
+      />
+    </svg>
+  );
+}
+
+function GuidePageIcon({ class: className }: IconProps) {
+  return (
+    <svg
+      aria-hidden="true"
+      class={className}
+      fill="none"
+      viewBox="0 0 20 20"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <rect
+        x="4"
+        y="3.5"
+        width="12"
+        height="13"
+        rx="2.25"
+        stroke="currentColor"
+        stroke-width="1.5"
+      />
+      <path
+        d="M7 7h6M7 10h6M7 13h4"
         stroke="currentColor"
         stroke-linecap="round"
         stroke-width="1.5"
@@ -1398,6 +1427,12 @@ export function App() {
             <SeparatorSheetIcon class="mode-switcher__icon" />
             {t(settings.locale, "optionModeSeparator")}
           </button>
+          {SEO_GUIDE_URL ? (
+            <a class="mode-switcher__button" href={SEO_GUIDE_URL}>
+              <GuidePageIcon class="mode-switcher__icon" />
+              {t(settings.locale, "buttonAsnGuide")}
+            </a>
+          ) : null}
           <div class="mode-switcher__aux-group">
             <button
               class="mode-switcher__button"
@@ -2295,6 +2330,14 @@ export function App() {
       <footer class="app-footer">
         <div class="app-footer__content">
           <div class="app-footer__links">
+            {SEO_GUIDE_URL ? (
+              <a
+                class="github-link"
+                href={SEO_GUIDE_URL}
+              >
+                {t(settings.locale, "footerAsnGuide")}
+              </a>
+            ) : null}
             <a
               class="github-link github-link--primary"
               href={REPOSITORY_URL}
