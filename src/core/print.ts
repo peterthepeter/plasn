@@ -1,6 +1,7 @@
 import { getRunTotalWidth } from "./code128";
 import { t } from "./i18n";
 import { getLabelTextCssFamily, getLabelTextPrintFontFaceCss } from "./labelFonts";
+import { getCssLabelTextTransform } from "./labelTextTransform";
 import { getQrDataUrlMap } from "./qr";
 import type {
   GeneratedDocumentLayout,
@@ -55,6 +56,7 @@ function buildPrintDocument(
             overflow: hidden;
           }
           .label img,
+          .label .label-text-frame,
           .label .label-text {
             position: absolute;
           }
@@ -65,6 +67,8 @@ function buildPrintDocument(
             box-sizing: border-box;
           }
           .label-text {
+            left: 50%;
+            top: 50%;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -208,13 +212,18 @@ export async function printLayout(
                       : ""
                   }
                   <img alt="" src="${qrDataUrlMap[item.encodedText]}" style="left:${item.qrXmm - item.xMm}mm;top:${item.qrYmm - item.yMm}mm;width:${item.qrSizeMm}mm;height:${item.qrSizeMm}mm;" />
-                  <div class="label-text" style="left:${item.textXmm - item.xMm}mm;top:${item.textYmm - item.yMm}mm;width:${item.textWidthMm}mm;height:${item.textHeightMm}mm;font-size:${item.textSizeMm}mm;line-height:${item.textLineHeightMm}mm;color:${escapeHtml(textColor)};font-family:${escapeHtml(getLabelTextCssFamily(textFontFamily))};transform:scaleX(${item.textScaleX});">
-                    ${item.textLines
-                      .map(
-                        (line) =>
-                          `<span class="label-text__line">${escapeHtml(line)}</span>`,
-                      )
-                      .join("")}
+                  <div class="label-text-frame" style="left:${item.textXmm - item.xMm}mm;top:${item.textYmm - item.yMm}mm;width:${item.textWidthMm}mm;height:${item.textHeightMm}mm;overflow:hidden;">
+                    <div class="label-text" style="width:${item.textLayoutWidthMm}mm;height:${item.textLayoutHeightMm}mm;font-size:${item.textSizeMm}mm;line-height:${item.textLineHeightMm}mm;color:${escapeHtml(textColor)};font-family:${escapeHtml(getLabelTextCssFamily(textFontFamily))};transform:${getCssLabelTextTransform(
+                      item.textRotationDeg,
+                      item.textScaleX,
+                    )};">
+                      ${item.textLines
+                        .map(
+                          (line) =>
+                            `<span class="label-text__line">${escapeHtml(line)}</span>`,
+                        )
+                        .join("")}
+                    </div>
                   </div>
                 </div>
               `);

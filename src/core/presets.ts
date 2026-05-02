@@ -63,7 +63,7 @@ export const PRESET_LIBRARY: LabelPreset[] = [
     labelHeightMm: 10,
     gutterXMm: 2.5,
     gutterYMm: 0,
-    marginLeftMm: 4.75,
+    marginLeftMm: 5.7,
     marginTopMm: 13.5,
     qrScale: 0.86,
     textGapMm: 0.18,

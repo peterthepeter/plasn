@@ -2,6 +2,7 @@ import type { ComponentChildren } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { getRunTotalWidth } from "../core/code128";
 import { getLabelTextCssFamily } from "../core/labelFonts";
+import { getCssLabelTextTransform } from "../core/labelTextTransform";
 import { getQrDataUrlMap } from "../core/qr";
 import type { GeneratedDocumentLayout, LabelTextFontFamily, Locale } from "../core/types";
 import { t } from "../core/i18n";
@@ -256,7 +257,10 @@ export function PreviewPanel({
                         lineHeight: `${item.textLineHeightMm * scale}px`,
                         color: textColor,
                         fontFamily: getLabelTextCssFamily(textFontFamily),
-                        transform: `translate(-50%, -50%) rotate(${item.textRotationDeg}deg) scaleX(${item.textScaleX})`,
+                        transform: getCssLabelTextTransform(
+                          item.textRotationDeg,
+                          item.textScaleX,
+                        ),
                       }}
                     >
                       {item.textLines.map((line, index) => (

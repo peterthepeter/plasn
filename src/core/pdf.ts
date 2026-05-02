@@ -3,6 +3,7 @@ import { getRunTotalWidth } from "./code128";
 import { hexToRgb } from "./color";
 import { t } from "./i18n";
 import { getPdfLabelFontKind } from "./labelFonts";
+import { getPdfLabelTextRotationDeg } from "./labelTextTransform";
 import { getQrDataUrlMap } from "./qr";
 import type {
   GeneratedDocumentLayout,
@@ -220,6 +221,9 @@ export async function renderPdf(
         const centerX = textBoxX + textBoxWidth / 2;
         const centerY = textBoxY + textBoxHeight / 2;
         const scaledFontSize = fontSize * item.textScaleX;
+        // Browser preview/print rotate in CSS coordinates with Y growing downward.
+        // PDF coordinates grow upward, so the visible rotation direction must be mirrored.
+        const pdfTextRotationDeg = getPdfLabelTextRotationDeg(item.textRotationDeg);
         let textY =
           logicalBoxTop - (textLayoutHeight - blockHeight) / 2 - fontSize;
 
@@ -251,14 +255,14 @@ export async function renderPdf(
           const lineWidth = font.widthOfTextAtSize(line, scaledFontSize);
           const anchorX = logicalBoxX + Math.max(0, (textLayoutWidth - lineWidth) / 2);
           const anchor =
-            item.textRotationDeg === 0
+            pdfTextRotationDeg === 0
               ? { x: anchorX, y: textY }
               : rotatePoint(
                   anchorX,
                   textY,
                   centerX,
                   centerY,
-                  item.textRotationDeg,
+                  pdfTextRotationDeg,
                 );
 
           page.drawText(line, {
@@ -267,9 +271,9 @@ export async function renderPdf(
             size: scaledFontSize,
             font,
             rotate:
-              item.textRotationDeg === 0
+              pdfTextRotationDeg === 0
                 ? undefined
-                : degrees(item.textRotationDeg),
+                : degrees(pdfTextRotationDeg),
             color: rgb(textColor.r / 255, textColor.g / 255, textColor.b / 255),
           });
           textY -= lineHeight;

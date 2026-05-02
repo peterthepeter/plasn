@@ -140,6 +140,7 @@ describe("generateLayout", () => {
   it("rotates text for the L4730 preset and keeps 270 slots", () => {
     const preset = PRESET_LIBRARY.find((entry) => entry.id === "averyL4730");
     expect(preset).toBeDefined();
+    expect(preset?.marginLeftMm).toBeCloseTo(5.7);
 
     const config = makeConfig({
       count: 1,
