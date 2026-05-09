@@ -10,6 +10,8 @@ export const MAX_SEPARATOR_HEADLINE_LENGTH = 40;
 export const MAX_SEPARATOR_FREE_TEXT_LENGTH = 200;
 export const MIN_CALIBRATION_QR_SCALE_PERCENT = 85;
 export const MAX_CALIBRATION_QR_SCALE_PERCENT = 100;
+export const MIN_QR_SCALE = 0.2;
+export const MAX_QR_SCALE = 1;
 
 export function clampAsnDigits(value: number): number {
   if (!Number.isFinite(value)) {
@@ -72,4 +74,12 @@ export function clampCalibrationQrScalePercent(value: number): number {
     MAX_CALIBRATION_QR_SCALE_PERCENT,
     Math.max(MIN_CALIBRATION_QR_SCALE_PERCENT, Math.round(value)),
   );
+}
+
+export function clampQrScale(value: number): number {
+  if (!Number.isFinite(value)) {
+    return 0.8;
+  }
+
+  return Math.min(MAX_QR_SCALE, Math.max(MIN_QR_SCALE, value));
 }

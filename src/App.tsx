@@ -24,6 +24,9 @@ import {
   normalizeSeparatorFreeText,
   normalizeSeparatorHeadline,
   normalizeStartPosition,
+  clampQrScale,
+  MIN_QR_SCALE,
+  MAX_QR_SCALE,
 } from "./core/limits";
 import { LABEL_TEXT_FONT_OPTIONS } from "./core/labelFonts";
 import { generateLayout } from "./core/layout";
@@ -1655,13 +1658,15 @@ export function App() {
                 <label class="field">
                   <span>{t(settings.locale, "fieldQrScale")}</span>
                   <NumberInput
-                    min={0.2}
-                    max={1}
+                    min={MIN_QR_SCALE}
+                    max={MAX_QR_SCALE}
                     onInput={(event) =>
-                      updateCustomPreset(
-                        "qrScale",
-                        Number((event.currentTarget as HTMLInputElement).value) || 0.8,
-                      )
+                      updateCustomPreset("qrScale", (() => {
+                        const nextValue = numericValue(
+                          (event.currentTarget as HTMLInputElement).value,
+                        );
+                        return nextValue === undefined ? 0.8 : clampQrScale(nextValue);
+                      })())
                     }
                     step="0.01"
                     value={settings.customPreset.qrScale}

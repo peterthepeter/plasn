@@ -1040,7 +1040,8 @@ textarea {
   width: 100%;
 }
 
-.field input[type="number"] {
+.field input[type="number"],
+.number-input > input {
   appearance: textfield;
   -moz-appearance: textfield;
   padding-right: 1.35rem;

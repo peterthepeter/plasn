@@ -10,6 +10,7 @@ import {
   normalizeSeparatorHeadline,
   normalizeStartPosition,
   clampCalibrationQrScalePercent,
+  clampQrScale,
 } from "./limits";
 import { createDefaultCustomPreset, PRESET_LIBRARY } from "./presets";
 import type {
@@ -198,6 +199,11 @@ export function loadSettings(): AppSettings {
       customPreset: {
         ...createDefaultCustomPreset(),
         ...(parsed.customPreset ?? {}),
+        qrScale: clampQrScale(
+          typeof parsed.customPreset?.qrScale === "number"
+            ? parsed.customPreset.qrScale
+            : createDefaultCustomPreset().qrScale,
+        ),
       },
     };
   } catch {

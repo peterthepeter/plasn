@@ -120,11 +120,14 @@ describe("App", () => {
   it("clamps the page count field to ten pages", () => {
     render(<App />);
 
-    fireEvent.input(screen.getByRole("spinbutton", { name: /Pages/i }), {
+    const pageCountInput = screen.getByRole("spinbutton", { name: /Pages/i });
+
+    fireEvent.input(pageCountInput, {
       target: { value: "11" },
     });
+    fireEvent.blur(pageCountInput);
 
-    expect(screen.getByRole("spinbutton", { name: /Pages/i })).toHaveValue(10);
+    expect(pageCountInput).toHaveValue("10");
   });
 
   it("shows start position again when returning to one page", () => {
@@ -160,9 +163,48 @@ describe("App", () => {
       target: { value: "150" },
     });
 
-    expect(screen.getByRole("spinbutton", { name: /Pages/i })).toHaveValue(1);
+    expect(screen.getByRole("spinbutton", { name: /Pages/i })).toHaveValue("1");
     expect(screen.getByRole("textbox", { name: /Start position/i })).toHaveValue("150");
     expect(screen.getByRole("textbox", { name: /Count/i })).toHaveValue("40");
+  });
+
+  it("lets custom QR scale accept a leading zero decimal input", () => {
+    render(<App />);
+
+    fireEvent.input(screen.getByRole("combobox", { name: /Preset/i }), {
+      target: { value: "custom" },
+    });
+
+    const qrScaleInput = screen.getByRole("spinbutton", {
+      name: /QR scale/i,
+    }) as HTMLInputElement;
+
+    fireEvent.input(qrScaleInput, { target: { value: "" } });
+    fireEvent.input(qrScaleInput, { target: { value: "0" } });
+
+    expect(qrScaleInput).toHaveValue("0");
+
+    fireEvent.input(qrScaleInput, { target: { value: "0,95" } });
+
+    expect(qrScaleInput).toHaveValue("0,95");
+    expect(localStorage.getItem("plasn.settings.v1")).toContain('"qrScale":0.95');
+  });
+
+  it("lets calibration QR code size keep a partial value while typing", () => {
+    render(<App />);
+
+    const qrCodeSizeInput = screen.getByRole("spinbutton", {
+      name: /QR code size/i,
+    }) as HTMLInputElement;
+
+    fireEvent.input(qrCodeSizeInput, { target: { value: "" } });
+    fireEvent.input(qrCodeSizeInput, { target: { value: "9" } });
+
+    expect(qrCodeSizeInput).toHaveValue("9");
+
+    fireEvent.input(qrCodeSizeInput, { target: { value: "95" } });
+
+    expect(qrCodeSizeInput).toHaveValue("95");
   });
 
   it("opens the workflow help modal in german UI", () => {
