@@ -8,23 +8,37 @@ type NumberInputProps = Omit<
   value: number;
 };
 
+type SignalishValue<T> = T | { value: T };
+
 const PARTIAL_NUMBER_PATTERN = /^[-+]?([.,])?$/;
 
-function parseNumericProp(value: number | string | undefined): number | undefined {
+function unwrapSignalish<T>(value: SignalishValue<T> | undefined): T | undefined {
+  if (value !== null && typeof value === "object" && "value" in value) {
+    return value.value;
+  }
+
+  return value;
+}
+
+function parseNumericProp(
+  value: SignalishValue<number | string | undefined> | undefined,
+): number | undefined {
   if (value === undefined || value === "") {
     return undefined;
   }
 
-  const parsed = Number(value);
+  const parsed = Number(unwrapSignalish(value));
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
-function getFractionPrecision(value: number | string | undefined): number {
+function getFractionPrecision(
+  value: SignalishValue<number | string | undefined> | undefined,
+): number {
   if (value === undefined) {
     return 0;
   }
 
-  const normalized = String(value).toLowerCase();
+  const normalized = String(unwrapSignalish(value)).toLowerCase();
   if (normalized.includes("e-")) {
     return Number.parseInt(normalized.split("e-")[1] ?? "0", 10) || 0;
   }
@@ -42,8 +56,11 @@ function roundToPrecision(value: number, precision: number): number {
   return Math.round((value + Number.EPSILON) * factor) / factor;
 }
 
-function formatDisplayValue(value: number, lang: string | undefined): string {
-  return new Intl.NumberFormat(lang, {
+function formatDisplayValue(
+  value: number,
+  lang: SignalishValue<string | undefined> | undefined,
+): string {
+  return new Intl.NumberFormat(unwrapSignalish(lang), {
     maximumFractionDigits: 20,
     useGrouping: false,
   }).format(value);
@@ -141,6 +158,7 @@ export function NumberInput(props: NumberInputProps) {
   } = props;
   const inputRef = useRef<HTMLInputElement | null>(null);
   const isDisabled = Boolean(disabled || readOnly);
+  const resolvedLang = unwrapSignalish(lang);
   const minimumValue = parseNumericProp(min);
   const maximumValue = parseNumericProp(max);
   const stepValueSize = parseNumericProp(step) ?? 1;
@@ -151,11 +169,11 @@ export function NumberInput(props: NumberInputProps) {
     maximumValue !== undefined && !Number.isInteger(maximumValue) ? 20 : 0,
   );
   const allowsFraction = fractionPrecision > 0;
-  const [draft, setDraft] = useState(() => formatDisplayValue(value, lang));
+  const [draft, setDraft] = useState(() => formatDisplayValue(value, resolvedLang));
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
-    const formattedValue = formatDisplayValue(value, lang);
+    const formattedValue = formatDisplayValue(value, resolvedLang);
     if (!isEditing) {
       setDraft(formattedValue);
       return;
@@ -173,7 +191,7 @@ export function NumberInput(props: NumberInputProps) {
     if (shouldSyncWhileEditing) {
       setDraft(formattedValue);
     }
-  }, [draft, isEditing, lang, value]);
+  }, [draft, isEditing, resolvedLang, value]);
 
   const commitToParent = (rawValue: string, sourceEvent: Event) => {
     if (!onInput) {
@@ -243,7 +261,7 @@ export function NumberInput(props: NumberInputProps) {
     }
 
     const roundedValue = roundToPrecision(nextValue, fractionPrecision);
-    input.value = formatDisplayValue(roundedValue, lang);
+    input.value = formatDisplayValue(roundedValue, resolvedLang);
     input.dispatchEvent(new Event("input", { bubbles: true }));
 
     input.focus();
