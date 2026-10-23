@@ -1,0 +1,15 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      patch-and-minor:
+        update-types:
+          - minor
+          - patch
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly

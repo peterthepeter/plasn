@@ -53,6 +53,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Check dependencies for known vulnerabilities
+        run: npm audit --audit-level=high
+
       - name: Run tests
         run: npm test
 
@@ -112,12 +115,27 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
+          pull: true
           build-args: |
             PLASN_SITE_URL=${{ secrets.PLASN_SITE_URL }}
           secrets: |
             "vite_cf_web_analytics_token=${{ secrets.CLOUDFLARE_WEB_ANALYTICS_TOKEN }}"
           platforms: ${{ matrix.platform }}
           outputs: type=image,name=${{ env.REGISTRY }}/${{ env.PRIVATE_IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
+
+      - name: Scan private image before publishing tags
+        env:
+          IMAGE_REF: ${{ env.REGISTRY }}/${{ env.PRIVATE_IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          docker run --rm \
+            -e TRIVY_USERNAME -e TRIVY_PASSWORD \
+            aquasec/trivy:0.76.1 image \
+            --image-src remote \
+            --platform "${{ matrix.platform }}" \
+            --scanners vuln --severity HIGH,CRITICAL --exit-code 1 \
+            "$IMAGE_REF"
 
       - name: Export private image digest
         run: |
@@ -223,8 +241,23 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
+          pull: true
           platforms: ${{ matrix.platform }}
           outputs: type=image,name=${{ env.REGISTRY }}/${{ env.PUBLIC_IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
+
+      - name: Scan public image before publishing tags
+        env:
+          IMAGE_REF: ${{ env.REGISTRY }}/${{ env.PUBLIC_IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          docker run --rm \
+            -e TRIVY_USERNAME -e TRIVY_PASSWORD \
+            aquasec/trivy:0.76.1 image \
+            --image-src remote \
+            --platform "${{ matrix.platform }}" \
+            --scanners vuln --severity HIGH,CRITICAL --exit-code 1 \
+            "$IMAGE_REF"
 
       - name: Export public image digest
         run: |
