@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "pdf-lib": "^1.17.1",
-    "preact": "^10.26.4",
+    "preact": "^11.0.2",
     "qrcode": "^1.5.4"
   },
   "devDependencies": {
